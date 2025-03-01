@@ -90,17 +90,17 @@ export default function RoadmapsPage() {
   });
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col theme-sunset">
       <Header />
       <main className="flex-grow">
         {/* Hero Section */}
-        <section className="py-20 bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800">
+        <section className="py-20 bg-gradient-sunset dark:from-sunset-900 dark:to-sunset-800">
           <div className="container mx-auto px-4 text-center">
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6"
+              className="text-4xl md:text-5xl font-bold text-white mb-6"
             >
               Discover Learning Roadmaps
             </motion.h1>
@@ -108,7 +108,7 @@ export default function RoadmapsPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-10"
+              className="text-xl text-white/80 max-w-3xl mx-auto mb-10"
             >
               Explore our most popular AI-generated learning paths or create your own
             </motion.p>
@@ -124,11 +124,11 @@ export default function RoadmapsPage() {
                 <input
                   type="text"
                   placeholder="Search for roadmaps..."
-                  className="flex-grow p-4 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary text-base"
+                  className="flex-grow p-4 rounded-lg border border-sunset-300 bg-white/90 focus:ring-2 focus:ring-sunset-400 focus:border-sunset-400 text-base"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
-                <button type="submit" className="btn-primary md:px-8">
+                <button type="submit" className="btn-primary md:px-8 bg-sunset-600 hover:bg-sunset-700">
                   Search
                 </button>
               </div>
@@ -147,8 +147,8 @@ export default function RoadmapsPage() {
                   onClick={() => setSelectedCategory(category.id)}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                     selectedCategory === category.id
-                      ? 'bg-primary text-white'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                      ? 'bg-sunset-500 text-white'
+                      : 'bg-sunset-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-sunset-100 dark:hover:bg-gray-700'
                   }`}
                 >
                   {category.name}
@@ -165,16 +165,19 @@ export default function RoadmapsPage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                   viewport={{ once: true }}
-                  className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden"
+                  className="roadmap-card group"
                 >
-                  <div className="h-48 relative">
+                  <div className="h-48 relative overflow-hidden">
                     <img 
                       src={roadmap.image} 
                       alt={roadmap.title}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
-                    <div className="absolute top-3 right-3 bg-primary text-white text-sm font-bold px-3 py-1 rounded-full">
-                      ★ {roadmap.popularity}
+                    <div className="absolute top-3 right-3 bg-sunset-500 text-white text-sm font-bold px-3 py-1 rounded-full flex items-center">
+                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      {roadmap.popularity}
                     </div>
                   </div>
                   <div className="p-6">
@@ -183,13 +186,13 @@ export default function RoadmapsPage() {
                     </div>
                     <p className="text-gray-600 dark:text-gray-300 mb-4">{roadmap.description}</p>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-500 dark:text-gray-400">
-                        <svg className="w-5 h-5 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <span className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
+                        <svg className="w-5 h-5 mr-1 text-sunset-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         {roadmap.estimatedTime}
                       </span>
-                      <button className="btn-primary text-sm py-1">View Roadmap</button>
+                      <button className="btn-primary text-sm py-1 px-4 bg-sunset-600 hover:bg-sunset-700">View Roadmap</button>
                     </div>
                   </div>
                 </motion.div>
@@ -210,15 +213,15 @@ export default function RoadmapsPage() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
               viewport={{ once: true }}
-              className="mt-16 bg-gray-50 dark:bg-gray-800 p-8 rounded-xl text-center"
+              className="mt-16 bg-sunset-50 dark:bg-gray-800 p-8 rounded-xl text-center"
             >
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+              <h2 className="text-2xl font-bold text-sunset-700 dark:text-sunset-300 mb-4">
                 Don't see what you're looking for?
               </h2>
               <p className="text-lg text-gray-600 dark:text-gray-300 mb-6 max-w-3xl mx-auto">
                 Create a completely personalized learning roadmap tailored to your specific goals and current skill level.
               </p>
-              <button className="btn-primary text-lg py-3 px-8">
+              <button className="btn-primary text-lg py-3 px-8 bg-sunset-600 hover:bg-sunset-700">
                 Create Custom Roadmap
               </button>
             </motion.div>

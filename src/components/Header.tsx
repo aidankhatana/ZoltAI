@@ -1,5 +1,8 @@
+'use client';
+
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import ThemeToggle from './ThemeToggle';
 
 const Header = () => {
   // This would be replaced with real auth state in a complete implementation
@@ -7,7 +10,7 @@ const Header = () => {
   const pathname = usePathname();
 
   return (
-    <header className="bg-white shadow-md dark:bg-gray-800">
+    <header className="bg-white shadow-md dark:bg-gray-800 border-b border-sunset-100 dark:border-sunset-900">
       <div className="container mx-auto px-4 py-4">
         <div className="flex justify-between items-center">
           <div className="flex items-center">
@@ -23,6 +26,8 @@ const Header = () => {
           </nav>
           
           <div className="flex items-center space-x-4">
+            <ThemeToggle />
+            
             {isLoggedIn ? (
               <>
                 <Link href="/dashboard" className="btn-primary">

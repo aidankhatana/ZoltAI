@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 
 const CTA = () => {
   return (
-    <section className="py-20 bg-primary">
+    <section className="py-20 bg-gradient-sunset">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto text-center">
           <motion.h2
@@ -21,9 +21,9 @@ const CTA = () => {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
             viewport={{ once: true }}
-            className="text-xl text-blue-100 mb-10"
+            className="text-xl text-white/80 mb-10"
           >
-            Join thousands of learners who have accelerated their progress with our AI-generated learning paths.
+            Create your personalized roadmap today and start learning more effectively.
           </motion.p>
           
           <motion.div
@@ -33,11 +33,11 @@ const CTA = () => {
             viewport={{ once: true }}
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
-            <Link href="/register" className="bg-white text-primary font-semibold py-3 px-8 rounded-lg shadow-md hover:bg-gray-100 transition-colors">
+            <Link href="/register" className="bg-white text-sunset-600 font-semibold py-3 px-8 rounded-lg shadow-md hover:bg-gray-100 transition-colors">
               Get Started for Free
             </Link>
-            <Link href="/demo" className="bg-transparent border-2 border-white text-white font-semibold py-3 px-8 rounded-lg hover:bg-white hover:bg-opacity-10 transition-colors">
-              Watch Demo
+            <Link href="/roadmaps" className="bg-transparent border-2 border-white text-white font-semibold py-3 px-8 rounded-lg hover:bg-white/10 transition-colors">
+              Explore Roadmaps
             </Link>
           </motion.div>
           
@@ -46,7 +46,7 @@ const CTA = () => {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
             viewport={{ once: true }}
-            className="mt-8 text-blue-100 text-sm"
+            className="mt-8 text-white/70 text-sm"
           >
             No credit card required. Start generating personalized learning paths today.
           </motion.p>
