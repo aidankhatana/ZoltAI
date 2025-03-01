@@ -9,90 +9,125 @@ generator client {
 }
 
 datasource db {
-  provider = "mongodb"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id              String           @id @default(auto()) @map("_id") @db.ObjectId
-  name            String?
-  email           String           @unique
-  password        String
-  image           String?
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  roadmaps        Roadmap[]
-  userProgress    UserProgress[]
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  roadmaps      Roadmap[]
+  userProgress  UserProgress[]
 }
 
 model Roadmap {
-  id              String           @id @default(auto()) @map("_id") @db.ObjectId
-  title           String
-  description     String
-  topic           String
-  difficulty      String
-  estimatedTime   String
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  isPublic        Boolean          @default(false)
-  userId          String?          @db.ObjectId
-  user            User?            @relation(fields: [userId], references: [id])
-  steps           Step[]
-  userProgress    UserProgress[]
+  id           String   @id @default(cuid())
+  title        String
+  description  String
+  topic        String
+  difficulty   String
+  estimatedTime String
+  isPublic     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  userId       String?
+  user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  steps        Step[]
+  userProgress UserProgress[]
+
+  @@index([userId])
+  @@index([topic])
+  @@index([isPublic])
 }
 
 model Step {
-  id              String           @id @default(auto()) @map("_id") @db.ObjectId
-  title           String
-  description     String
-  order           Int
-  estimatedTime   String
-  content         String           @db.String
-  roadmapId       String           @db.ObjectId
-  roadmap         Roadmap          @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
-  resources       Resource[]
-  quiz            Quiz?
-  progress        UserProgress[]
+  id            String   @id @default(cuid())
+  title         String
+  description   String
+  content       String   @db.Text
+  order         Int
+  estimatedTime String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  roadmapId     String
+  roadmap       Roadmap  @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+  
+  resources     Resource[]
+  quiz          Quiz?
+  userProgress  UserProgress[]
+
+  @@index([roadmapId])
 }
 
 model Resource {
-  id              String           @id @default(auto()) @map("_id") @db.ObjectId
-  title           String
-  url             String
-  type            String
-  stepId          String           @db.ObjectId
-  step            Step             @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  title     String
+  url       String
+  type      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  stepId    String
+  step      Step     @relation(fields: [stepId], references: [id], onDelete: Cascade)
+
+  @@index([stepId])
 }
 
 model Quiz {
-  id              String           @id @default(auto()) @map("_id") @db.ObjectId
-  stepId          String           @unique @db.ObjectId
-  step            Step             @relation(fields: [stepId], references: [id], onDelete: Cascade)
-  questions       Question[]
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  stepId    String   @unique
+  step      Step     @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  
+  questions Question[]
+
+  @@index([stepId])
 }
 
 model Question {
-  id              String           @id @default(auto()) @map("_id") @db.ObjectId
-  text            String
-  options         String[]
-  correctOption   Int
-  explanation     String
-  quizId          String           @db.ObjectId
-  quiz            Quiz             @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  id           String   @id @default(cuid())
+  text         String
+  options      String[] // Array of strings for multiple choice options
+  correctOption Int     // Index of the correct answer (0-based)
+  explanation  String?  // Optional explanation for the answer
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  quizId       String
+  quiz         Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@index([quizId])
 }
 
 model UserProgress {
-  id              String           @id @default(auto()) @map("_id") @db.ObjectId
-  userId          String           @db.ObjectId
-  roadmapId       String           @db.ObjectId
-  stepId          String?          @db.ObjectId
-  completed       Boolean          @default(false)
-  lastAccessedAt  DateTime         @default(now())
-  completedAt     DateTime?
-  quizScore       Int?
-  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  roadmap         Roadmap          @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
-  step            Step?            @relation(fields: [stepId], references: [id])
+  id          String    @id @default(cuid())
+  completed   Boolean   @default(false)
+  quizScore   Int?      // Optional, only set if they've completed the quiz
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  roadmapId   String
+  roadmap     Roadmap   @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+  
+  stepId      String
+  step        Step      @relation(fields: [stepId], references: [id], onDelete: Cascade)
 
   @@unique([userId, roadmapId, stepId])
+  @@index([userId])
+  @@index([roadmapId])
+  @@index([stepId])
 }
