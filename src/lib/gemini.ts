@@ -155,4 +155,28 @@ export async function generateQuiz(stepContent: string, difficulty: string): Pro
     console.error('Error generating quiz:', error);
     throw new Error(`Failed to generate quiz: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
+}
+
+export async function generateStepContent(topic: string, stepTitle: string, difficulty: string): Promise<string> {
+  try {
+    const prompt = `
+    Create detailed educational content for a step in a learning roadmap about ${topic}.
+    The step is titled "${stepTitle}" and is targeted at ${difficulty} level learners.
+    
+    The content should be comprehensive, educational, and include:
+    - Clear explanations of concepts
+    - Examples where appropriate
+    - Practical applications
+    - Tips for better understanding
+    
+    Write between 500-1000 words of high-quality educational content.
+    `;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    return response.text();
+  } catch (error) {
+    console.error('Error generating step content:', error);
+    throw new Error(`Failed to generate step content: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
 } 
