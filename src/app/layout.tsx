@@ -16,8 +16,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} theme-sunset min-h-screen flex flex-col`}>
+    <html lang="en" className="light">
+      <body className={`${inter.className} min-h-screen flex flex-col`}>
         <ClientLayout>
           {children}
         </ClientLayout>
