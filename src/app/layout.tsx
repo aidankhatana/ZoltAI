@@ -1,10 +1,7 @@
 import '@/styles/globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import { AuthProvider } from '@/contexts/AuthContext'
-import { RoadmapProvider } from '@/contexts/RoadmapContext'
-import Navbar from '@/components/Navbar'
-import Footer from '@/components/Footer'
+import ClientLayout from '@/components/ClientLayout'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -21,15 +18,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} theme-sunset min-h-screen flex flex-col`}>
-        <AuthProvider>
-          <RoadmapProvider>
-            <Navbar />
-            <main className="flex-grow">
-              {children}
-            </main>
-            <Footer />
-          </RoadmapProvider>
-        </AuthProvider>
+        <ClientLayout>
+          {children}
+        </ClientLayout>
       </body>
     </html>
   )
