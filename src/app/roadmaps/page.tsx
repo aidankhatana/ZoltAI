@@ -4,10 +4,12 @@ import { useState } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 
 export default function RoadmapsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [topicInput, setTopicInput] = useState('');
 
   const categories = [
     { id: 'all', name: 'All Categories' },
@@ -88,6 +90,13 @@ export default function RoadmapsPage() {
       roadmap.description.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
+
+  const handleCreateCustomRoadmap = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (topicInput.trim()) {
+      window.location.href = `/assessment?topic=${encodeURIComponent(topicInput.trim())}`;
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col theme-sunset">
@@ -192,7 +201,12 @@ export default function RoadmapsPage() {
                         </svg>
                         {roadmap.estimatedTime}
                       </span>
-                      <button className="btn-primary text-sm py-1 px-4 bg-sunset-600 hover:bg-sunset-700">View Roadmap</button>
+                      <Link 
+                        href={`/assessment?topic=${encodeURIComponent(roadmap.title)}`}
+                        className="btn-primary text-sm py-1 px-4 bg-sunset-600 hover:bg-sunset-700"
+                      >
+                        View Roadmap
+                      </Link>
                     </div>
                   </div>
                 </motion.div>
@@ -221,9 +235,24 @@ export default function RoadmapsPage() {
               <p className="text-lg text-gray-600 dark:text-gray-300 mb-6 max-w-3xl mx-auto">
                 Create a completely personalized learning roadmap tailored to your specific goals and current skill level.
               </p>
-              <button className="btn-primary text-lg py-3 px-8 bg-sunset-600 hover:bg-sunset-700">
-                Create Custom Roadmap
-              </button>
+              <form onSubmit={handleCreateCustomRoadmap} className="max-w-xl mx-auto">
+                <div className="flex flex-col md:flex-row gap-4">
+                  <input
+                    type="text"
+                    placeholder="What do you want to learn? (e.g., Python, Digital Marketing)"
+                    className="flex-grow p-4 rounded-lg border border-sunset-300 bg-white/90 focus:ring-2 focus:ring-sunset-400 focus:border-sunset-400 text-base"
+                    value={topicInput}
+                    onChange={(e) => setTopicInput(e.target.value)}
+                    required
+                  />
+                  <button 
+                    type="submit" 
+                    className="btn-primary md:px-8 bg-sunset-600 hover:bg-sunset-700"
+                  >
+                    Create Custom Roadmap
+                  </button>
+                </div>
+              </form>
             </motion.div>
           </div>
         </section>
