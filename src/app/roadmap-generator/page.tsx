@@ -28,6 +28,7 @@ export default function RoadmapGenerator() {
   const [isPublic, setIsPublic] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedPopularTopic, setSelectedPopularTopic] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const selectPopularTopic = (topic: string) => {
     setTopic(topic);
@@ -38,24 +39,27 @@ export default function RoadmapGenerator() {
     e.preventDefault();
     
     if (!topic.trim()) {
-      alert('Please enter a topic');
+      setErrorMessage('Please enter a topic');
       return;
     }
     
     setIsGenerating(true);
+    setErrorMessage('');
     
     try {
       const result = await createRoadmap(topic, skillLevel, additionalInfo, isPublic);
       
       if (result.success && result.roadmapId) {
-        router.push(`/roadmaps/${result.roadmapId}`);
+        setTimeout(() => {
+          router.push(`/roadmaps/${result.roadmapId}`);
+        }, 100);
       } else {
-        alert(result.error || 'Failed to create roadmap');
+        setErrorMessage(result.error || 'Failed to create roadmap');
+        setIsGenerating(false);
       }
     } catch (error) {
       console.error('Error creating roadmap:', error);
-      alert('An unexpected error occurred. Please try again.');
-    } finally {
+      setErrorMessage(error instanceof Error ? error.message : 'An unexpected error occurred');
       setIsGenerating(false);
     }
   };
@@ -158,9 +162,9 @@ export default function RoadmapGenerator() {
                 </div>
               )}
             
-              {error && (
+              {errorMessage && (
                 <div className="mb-6 p-4 text-sm text-red-700 bg-red-100 rounded-lg dark:bg-red-200 dark:text-red-800">
-                  <p>{error}</p>
+                  <p>{errorMessage}</p>
                 </div>
               )}
             

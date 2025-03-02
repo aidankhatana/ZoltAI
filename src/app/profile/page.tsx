@@ -30,17 +30,64 @@ export default function ProfilePage() {
 
     const fetchUserRoadmaps = async () => {
       try {
-        // This would typically be an API call to get the user's roadmaps
-        const response = await fetch('/api/users/progress', {
+        setIsLoading(true);
+        
+        // Fetch user's roadmaps from the roadmaps API
+        const roadmapsResponse = await fetch(`/api/roadmaps?userId=${user.id}`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
         });
         
-        if (response.ok) {
-          const data = await response.json();
-          setUserRoadmaps(data.roadmaps || []);
+        if (!roadmapsResponse.ok) {
+          throw new Error('Failed to fetch user roadmaps');
         }
+        
+        const roadmapsData = await roadmapsResponse.json();
+        
+        // Fetch progress data to combine with roadmaps
+        const progressResponse = await fetch('/api/users/progress', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (!progressResponse.ok) {
+          throw new Error('Failed to fetch user progress');
+        }
+        
+        const progressData = await progressResponse.json();
+        
+        // Create a map of roadmap IDs to progress information
+        const progressMap = new Map();
+        
+        progressData.progress?.forEach((item: any) => {
+          if (item.roadmap && item.steps) {
+            const roadmapId = item.roadmap.id;
+            const totalSteps = item.steps.length;
+            const completedSteps = item.steps.filter((step: any) => step.completed).length;
+            const progress = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
+            
+            progressMap.set(roadmapId, {
+              progress,
+              lastAccessed: item.steps.length > 0 
+                ? new Date(Math.max(...item.steps.map((s: any) => s.completedAt ? new Date(s.completedAt).getTime() : 0))).toLocaleDateString()
+                : 'Not started'
+            });
+          }
+        });
+        
+        // Combine roadmap data with progress data
+        const userRoadmapsWithProgress = roadmapsData.roadmaps.map((roadmap: any) => ({
+          id: roadmap.id,
+          title: roadmap.title,
+          topic: roadmap.topic,
+          difficulty: roadmap.difficulty || 'Beginner',
+          progress: progressMap.has(roadmap.id) ? progressMap.get(roadmap.id).progress : 0,
+          lastAccessed: progressMap.has(roadmap.id) ? progressMap.get(roadmap.id).lastAccessed : 'Not started yet'
+        }));
+        
+        setUserRoadmaps(userRoadmapsWithProgress);
       } catch (error) {
         console.error('Error fetching user roadmaps:', error);
       } finally {
