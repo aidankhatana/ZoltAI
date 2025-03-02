@@ -115,4 +115,54 @@ const Features = () => {
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
             Explore Popular Roadmaps
           </h2>
-          <p className="text-xl text
+          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+            Discover learning paths created by our AI for popular topics
+          </p>
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+          {exampleRoadmaps.map((roadmap, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              viewport={{ once: true }}
+              className="roadmap-card group"
+            >
+              <div className="relative h-48 overflow-hidden">
+                <img
+                  src={roadmap.image}
+                  alt={roadmap.title}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-6">
+                  <div>
+                    <span className="text-xs font-semibold px-2 py-1 bg-sunset-500 rounded-full text-white mb-2 inline-block">
+                      {roadmap.category}
+                    </span>
+                    <h3 className="text-xl font-bold text-white">{roadmap.title}</h3>
+                    <p className="text-white/80 text-sm flex items-center mt-1">
+                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Estimated time: {roadmap.time}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        <div className="text-center">
+          <Link href="/roadmaps" className="inline-block btn-primary bg-sunset-600 hover:bg-sunset-700 px-8 py-3">
+            View All Roadmaps
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default Features; 
