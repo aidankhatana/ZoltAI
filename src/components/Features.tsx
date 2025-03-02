@@ -58,7 +58,7 @@ const Features = () => {
       title: 'Guitar Mastery',
       category: 'Music',
       time: '16 weeks',
-      image: '/images/guitarist-mountains.jpg',
+      image: '/images/guitarist-mountains.png',
     },
   ];
 

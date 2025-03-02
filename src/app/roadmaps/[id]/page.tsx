@@ -12,6 +12,17 @@ interface RoadmapPageProps {
   };
 }
 
+// Simple function to convert markdown to HTML if needed
+function markdownToHtml(content: string) {
+  return content
+    .replace(/^# (.*$)/gm, '<h1>$1</h1>')
+    .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+    .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+    .replace(/\*\*(.*)\*\*/gm, '<strong>$1</strong>')
+    .replace(/\*(.*)\*/gm, '<em>$1</em>')
+    .replace(/\n/gm, '<br />');
+}
+
 export default function RoadmapPage({ params }: RoadmapPageProps) {
   const { id } = params;
   const router = useRouter();
@@ -33,13 +44,16 @@ export default function RoadmapPage({ params }: RoadmapPageProps) {
     };
     
     loadRoadmap();
-  }, [id, user]);
+  }, [id, user, fetchRoadmap, fetchRoadmapProgress]);
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-12">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      <div className="min-h-screen bg-gradient-to-r from-orange-500 to-amber-500 dark:from-orange-800 dark:to-amber-800 flex items-center justify-center">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-8 max-w-md w-full">
+          <div className="flex flex-col items-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+            <p className="mt-4 text-gray-600 dark:text-gray-300">Loading your roadmap journey...</p>
+          </div>
         </div>
       </div>
     );
@@ -47,15 +61,15 @@ export default function RoadmapPage({ params }: RoadmapPageProps) {
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-12">
-        <div className="bg-red-50 p-6 rounded-lg border border-red-200">
-          <h2 className="text-xl font-semibold text-red-700 mb-2">Error Loading Roadmap</h2>
-          <p className="text-red-600">{error}</p>
+      <div className="min-h-screen bg-gradient-to-r from-orange-500 to-amber-500 dark:from-orange-800 dark:to-amber-800 flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-8 max-w-md w-full">
+          <h2 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-3">Error Loading Roadmap</h2>
+          <p className="text-gray-700 dark:text-gray-300 mb-4">{error}</p>
           <button 
             onClick={() => router.push('/roadmaps')}
-            className="mt-4 text-blue-600 hover:text-blue-800 font-medium"
+            className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors"
           >
-            &larr; Go back to roadmaps
+            &larr; Back to Roadmaps
           </button>
         </div>
       </div>
@@ -64,16 +78,18 @@ export default function RoadmapPage({ params }: RoadmapPageProps) {
 
   if (!currentRoadmap) {
     return (
-      <div className="container mx-auto px-4 py-12">
-        <div className="bg-yellow-50 p-6 rounded-lg border border-yellow-200">
-          <h2 className="text-xl font-semibold text-yellow-700 mb-2">Roadmap Not Found</h2>
-          <p className="text-yellow-600">The roadmap you are looking for does not exist or you don't have permission to view it.</p>
-          <button 
-            onClick={() => router.push('/roadmaps')}
-            className="mt-4 text-blue-600 hover:text-blue-800 font-medium"
+      <div className="min-h-screen bg-gradient-to-r from-orange-500 to-amber-500 dark:from-orange-800 dark:to-amber-800 flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-8 max-w-md w-full">
+          <h2 className="text-2xl font-bold text-amber-600 dark:text-amber-400 mb-3">Roadmap Not Found</h2>
+          <p className="text-gray-700 dark:text-gray-300 mb-4">
+            The roadmap you're looking for doesn't exist or you don't have permission to view it.
+          </p>
+          <Link 
+            href="/roadmaps" 
+            className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors inline-block"
           >
-            &larr; Go back to roadmaps
-          </button>
+            &larr; Back to Roadmaps
+          </Link>
         </div>
       </div>
     );
@@ -84,187 +100,314 @@ export default function RoadmapPage({ params }: RoadmapPageProps) {
       ...prev,
       [stepId]: !prev[stepId]
     }));
+    setActiveStep(activeStep === stepId ? null : stepId);
   };
 
   const isStepCompleted = (stepId: string) => {
-    if (!progressData || !progressData.steps) return false;
-    const stepProgress = progressData.steps.find((s: any) => s.stepId === stepId);
-    return stepProgress?.completed || false;
+    return progressData?.completedSteps?.includes(stepId) || false;
   };
 
   const markStepComplete = async (stepId: string) => {
     if (!user) {
-      router.push('/login?redirect=' + encodeURIComponent(`/roadmaps/${id}`));
+      router.push('/login');
       return;
     }
 
-    const success = await updateProgress(id, stepId, true);
-    if (success) {
-      // Refresh progress data
-      const progress = await fetchRoadmapProgress(id);
+    try {
+      await updateProgress(currentRoadmap.id, stepId, true);
+      const progress = await fetchRoadmapProgress(currentRoadmap.id);
       setProgressData(progress);
+    } catch (error) {
+      console.error('Error updating progress:', error);
     }
   };
 
   const calculateProgress = () => {
-    if (!progressData || !progressData.steps || !currentRoadmap.steps) return 0;
-    const completedSteps = progressData.steps.filter((s: any) => s.completed).length;
-    return Math.round((completedSteps / currentRoadmap.steps.length) * 100);
+    if (!progressData?.completedSteps?.length || !currentRoadmap.steps.length) {
+      return 0;
+    }
+    
+    return Math.round((progressData.completedSteps.length / currentRoadmap.steps.length) * 100);
   };
 
+  const progress = calculateProgress();
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Roadmap Header */}
-        <div className="mb-8">
-          <Link href="/roadmaps" className="text-sunset-600 hover:text-sunset-800 dark:text-sunset-400 dark:hover:text-sunset-300 flex items-center mb-4">
-            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+    <div className="min-h-screen bg-gradient-to-r from-orange-500 to-amber-500 dark:from-orange-800 dark:to-amber-800">
+      <div className="container mx-auto px-4 py-12">
+        <div className="max-w-4xl mx-auto">
+          {/* Back button */}
+          <Link 
+            href="/roadmaps" 
+            className="inline-flex items-center mb-6 text-white hover:text-amber-200 transition-colors font-medium"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
             </svg>
             Back to Roadmaps
           </Link>
           
-          <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-white">{currentRoadmap.title}</h1>
-          <p className="text-gray-600 dark:text-gray-300 mb-4">{currentRoadmap.description}</p>
-          
-          <div className="flex flex-wrap gap-3 mb-6">
-            <div className="bg-sunset-50 text-sunset-700 dark:bg-sunset-900 dark:text-sunset-300 px-3 py-1 rounded-full text-sm font-medium">
-              {currentRoadmap.topic}
-            </div>
-            <div className="bg-purple-50 text-purple-700 dark:bg-purple-900 dark:text-purple-300 px-3 py-1 rounded-full text-sm font-medium">
-              {currentRoadmap.difficulty}
-            </div>
-            <div className="bg-green-50 text-green-700 dark:bg-green-900 dark:text-green-300 px-3 py-1 rounded-full text-sm font-medium">
-              {currentRoadmap.estimatedTime}
+          {/* Roadmap Header */}
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden mb-8 transform hover:scale-[1.01] transition-all">
+            <div className="p-8">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+                {currentRoadmap.title}
+              </h1>
+              
+              <p className="text-gray-600 dark:text-gray-300 mb-6">
+                {currentRoadmap.description}
+              </p>
+              
+              <div className="flex flex-wrap gap-3 mb-6">
+                <span className="px-3 py-1 rounded-full text-sm font-medium bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+                  {currentRoadmap.topic}
+                </span>
+                <span className="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                  {currentRoadmap.difficulty}
+                </span>
+                <span className="px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                  {currentRoadmap.estimatedTime}
+                </span>
+              </div>
+              
+              {user && (
+                <div className="mb-2">
+                  <div className="flex justify-between items-center mb-2">
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Your Progress</p>
+                    <p className="text-sm font-bold text-orange-600 dark:text-orange-400">{progress}%</p>
+                  </div>
+                  <div className="w-full h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full rounded-full bg-gradient-to-r from-orange-500 to-amber-500 dark:from-orange-600 dark:to-amber-600 transition-all duration-500 ease-out" 
+                      style={{ width: `${progress}%` }}
+                    ></div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
           
-          {progressData && (
-            <div className="mb-6">
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Your Progress: {calculateProgress()}%</p>
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
-                <div 
-                  className="bg-sunset-600 h-2.5 rounded-full" 
-                  style={{ width: `${calculateProgress()}%` }}
-                ></div>
-              </div>
+          {/* Journey Trail */}
+          <div className="relative mb-8">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-white">Your Learning Trail</h2>
+              {user ? (
+                <div className="bg-white/20 dark:bg-gray-800/30 rounded-lg px-4 py-2 backdrop-blur-sm">
+                  <p className="text-white text-sm">
+                    <span className="font-bold">{progressData?.completedSteps?.length || 0}</span> of <span className="font-bold">{currentRoadmap.steps.length}</span> steps completed
+                  </p>
+                </div>
+              ) : (
+                <Link href="/login" className="text-sm text-white hover:text-amber-200 transition-colors">
+                  Sign in to track progress
+                </Link>
+              )}
             </div>
-          )}
-        </div>
-        
-        {/* Roadmap Steps */}
-        <div className="space-y-6">
-          {currentRoadmap.steps.map((step, index) => {
-            const isCompleted = isStepCompleted(step.id);
-            const isExpand = isExpanded[step.id] || false;
             
-            return (
-              <div 
-                key={step.id} 
-                className={`border rounded-lg overflow-hidden ${
-                  isCompleted 
-                    ? 'border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/30' 
-                    : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'
-                }`}
-              >
-                <div 
-                  className="p-4 cursor-pointer flex items-center justify-between"
-                  onClick={() => toggleStepExpand(step.id)}
-                >
-                  <div className="flex items-center">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${
-                      isCompleted 
-                        ? 'bg-green-500 text-white' 
-                        : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
-                    }`}>
-                      {isCompleted ? (
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
-                        </svg>
-                      ) : (
-                        index + 1
-                      )}
+            {/* Timeline Steps */}
+            <div className="relative">
+              {/* Trail Path */}
+              <div className="absolute left-8 top-0 bottom-0 w-1 bg-white/30 dark:bg-white/20 rounded-full"></div>
+              
+              <div className="space-y-6">
+                {currentRoadmap.steps.map((step, index) => {
+                  const completed = isStepCompleted(step.id);
+                  const expanded = isExpanded[step.id] || false;
+                  
+                  return (
+                    <div key={step.id} className="relative animate-fadeIn" style={{ animationDelay: `${index * 100}ms` }}>
+                      {/* Trail Marker */}
+                      <div className={`absolute left-8 top-8 h-6 w-6 rounded-full border-4 transform -translate-x-1/2 z-10 transition-all duration-300 ${
+                        completed 
+                          ? 'bg-green-500 border-white shadow-lg shadow-green-500/20' 
+                          : 'bg-white dark:bg-gray-200 border-orange-200 dark:border-orange-900'
+                      }`}></div>
+                      
+                      <div className="ml-16">
+                        <div className={`
+                          bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden transition-all duration-300
+                          ${expanded ? 'transform scale-[1.02] shadow-xl' : 'hover:shadow-lg'}
+                        `}>
+                          {/* Step Header - Always visible */}
+                          <button
+                            onClick={() => toggleStepExpand(step.id)}
+                            className="flex w-full items-center text-left p-5 focus:outline-none"
+                          >
+                            <div className="flex-1">
+                              <div className="flex items-center">
+                                <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200 mr-3">
+                                  {index + 1}
+                                </span>
+                                <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                                  {step.title}
+                                </h3>
+                                {completed && (
+                                  <span className="ml-3 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                    <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
+                                    </svg>
+                                    Completed
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                {step.description.length > 100 
+                                  ? `${step.description.substring(0, 100)}...` 
+                                  : step.description}
+                              </p>
+                            </div>
+                            <div className="ml-4 flex-shrink-0">
+                              <div className={`p-2 rounded-full transition-colors ${
+                                expanded 
+                                  ? 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-200' 
+                                  : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
+                              }`}>
+                                <svg 
+                                  className={`h-5 w-5 transition-transform duration-300 ${expanded ? 'rotate-180' : ''}`} 
+                                  fill="none" 
+                                  viewBox="0 0 24 24" 
+                                  stroke="currentColor"
+                                >
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                              </div>
+                            </div>
+                          </button>
+                          
+                          {/* Expanded Content */}
+                          {expanded && (
+                            <div className="px-5 pb-5 border-t border-gray-100 dark:border-gray-700">
+                              <div className="mt-4 prose dark:prose-invert max-w-none prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-700 dark:prose-p:text-gray-300">
+                                {step.content && step.content.includes('#') ? (
+                                  <div dangerouslySetInnerHTML={{ __html: markdownToHtml(step.content) }} />
+                                ) : (
+                                  <div>
+                                    {step.content?.split('\n').map((paragraph, i) => (
+                                      <p key={i} className="mb-3">{paragraph}</p>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {/* Resources Section */}
+                              {step.resources && step.resources.length > 0 && (
+                                <div className="mt-6 bg-orange-50 dark:bg-gray-750 rounded-lg p-4">
+                                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+                                    <svg className="w-5 h-5 mr-2 text-orange-600 dark:text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                    </svg>
+                                    Learning Resources
+                                  </h4>
+                                  <ul className="grid gap-3 md:grid-cols-2">
+                                    {step.resources.map((resource, resourceIndex) => (
+                                      <li key={resourceIndex} className="flex bg-white dark:bg-gray-800 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow">
+                                        <div className={`
+                                          flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center
+                                          ${resource.type === 'video' ? 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300' : 
+                                            resource.type === 'article' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' : 
+                                            resource.type === 'book' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300' : 
+                                            'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'}
+                                        `}>
+                                          {resource.type === 'video' ? (
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                          ) : resource.type === 'article' ? (
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                                            </svg>
+                                          ) : resource.type === 'book' ? (
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                            </svg>
+                                          ) : (
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                                            </svg>
+                                          )}
+                                        </div>
+                                        <div className="ml-3 flex-1">
+                                          <a 
+                                            href={resource.url} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="font-medium text-gray-900 dark:text-white hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
+                                          >
+                                            {resource.title}
+                                          </a>
+                                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 capitalize">{resource.type}</p>
+                                        </div>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                              
+                              {/* Actions */}
+                              <div className="mt-6 flex justify-between items-center">
+                                {user ? (
+                                  <button
+                                    onClick={() => markStepComplete(step.id)}
+                                    className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+                                      completed 
+                                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50'
+                                        : 'bg-orange-600 text-white hover:bg-orange-700 dark:bg-orange-700 dark:hover:bg-orange-600'
+                                    }`}
+                                  >
+                                    {completed ? (
+                                      <span className="flex items-center">
+                                        <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
+                                        </svg>
+                                        Completed
+                                      </span>
+                                    ) : 'Mark as Complete'}
+                                  </button>
+                                ) : (
+                                  <Link 
+                                    href="/login" 
+                                    className="text-sm text-orange-600 dark:text-orange-400 hover:underline"
+                                  >
+                                    Log in to track progress
+                                  </Link>
+                                )}
+                                
+                                {index < currentRoadmap.steps.length - 1 && (
+                                  <button
+                                    onClick={() => toggleStepExpand(currentRoadmap.steps[index + 1].id)}
+                                    className="flex items-center text-sm font-medium text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 transition-colors"
+                                  >
+                                    Next Step
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                    </svg>
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-medium text-gray-900 dark:text-white">{step.title}</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">{step.estimatedTime}</p>
+                  );
+                })}
+                
+                {/* End of trail marker */}
+                <div className="relative">
+                  <div className="absolute left-8 top-0 h-8 w-1 bg-white/30 dark:bg-white/20"></div>
+                  <div className="absolute left-8 top-8 h-8 w-8 rounded-full bg-amber-500 border-4 border-white shadow-lg transform -translate-x-1/2 z-10"></div>
+                  <div className="ml-16 pt-6">
+                    <div className="bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 p-4 rounded-lg inline-block">
+                      <p className="font-semibold">
+                        {progress === 100 ? 'Congratulations! You\'ve completed this roadmap! 🎉' : 'You\'ve reached the end of this roadmap outline.'}
+                      </p>
                     </div>
-                  </div>
-                  <div>
-                    <svg 
-                      className={`w-5 h-5 text-gray-500 dark:text-gray-400 transform ${isExpand ? 'rotate-180' : ''}`} 
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24" 
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-                    </svg>
                   </div>
                 </div>
-                
-                {isExpand && (
-                  <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-                    <p className="text-gray-700 dark:text-gray-300 mb-4">{step.description}</p>
-                    
-                    {step.content && (
-                      <div className="mb-6">
-                        <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Content</h4>
-                        <div className="prose dark:prose-invert max-w-none">{step.content}</div>
-                      </div>
-                    )}
-                    
-                    {step.resources && step.resources.length > 0 && (
-                      <div className="mb-6">
-                        <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Resources</h4>
-                        <ul className="space-y-2">
-                          {step.resources.map((resource) => (
-                            <li key={resource.id} className="flex items-start">
-                              <span className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 text-xs px-2 py-1 rounded mr-2 uppercase">
-                                {resource.type}
-                              </span>
-                              <a 
-                                href={resource.url} 
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-sunset-600 hover:text-sunset-800 dark:text-sunset-400 dark:hover:text-sunset-300"
-                              >
-                                {resource.title}
-                              </a>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    
-                    {step.quiz && (
-                      <div className="mb-6">
-                        <Link 
-                          href={`/quizzes/${step.id}`}
-                          className="text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300 flex items-center"
-                        >
-                          <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
-                            <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd"></path>
-                          </svg>
-                          Take Quiz to Test Your Knowledge
-                        </Link>
-                      </div>
-                    )}
-                    
-                    {!isCompleted && user && (
-                      <button 
-                        onClick={() => markStepComplete(step.id)}
-                        className="mt-4 btn-primary bg-sunset-600 hover:bg-sunset-700 dark:bg-sunset-700 dark:hover:bg-sunset-600"
-                      >
-                        Mark as Complete
-                      </button>
-                    )}
-                  </div>
-                )}
               </div>
-            );
-          })}
+            </div>
+          </div>
         </div>
       </div>
     </div>

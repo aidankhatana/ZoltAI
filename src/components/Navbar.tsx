@@ -59,13 +59,13 @@ export default function Navbar() {
               <div className="flex items-center space-x-4">
                 <Link
                   href="/profile"
-                  className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+                  className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 >
                   My Profile
                 </Link>
                 <button
                   onClick={logout}
-                  className="text-sm font-medium text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                  className="text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 transition-colors"
                 >
                   Log Out
                 </button>
@@ -124,65 +124,80 @@ export default function Navbar() {
         </div>
 
         {/* Mobile Navigation */}
-        {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-gray-200 dark:border-gray-700">
-            <nav className="flex flex-col space-y-4 mb-4">
+        <div className={`md:hidden fixed inset-0 z-40 bg-white dark:bg-gray-900 ${isMenuOpen ? 'block' : 'hidden'}`}>
+          <div className="flex justify-end p-4">
+            <button onClick={toggleMenu} className="text-gray-500">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          <nav className="px-4 py-2">
+            <ul className="space-y-4">
               {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`text-sm font-medium ${
-                    isActive(link.href)
-                      ? 'text-blue-600 dark:text-blue-400'
-                      : 'text-gray-600 dark:text-gray-300'
-                  }`}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {link.name}
-                </Link>
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className={`block py-2 ${
+                      isActive(link.href)
+                        ? 'text-blue-600 dark:text-blue-400'
+                        : 'text-gray-600 dark:text-gray-300'
+                    }`}
+                    onClick={toggleMenu}
+                  >
+                    {link.name}
+                  </Link>
+                </li>
               ))}
-            </nav>
-            <div className="flex flex-col space-y-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+              
               {user ? (
                 <>
-                  <Link
-                    href="/profile"
-                    className="text-sm font-medium text-gray-600 dark:text-gray-300"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    My Profile
-                  </Link>
-                  <button
-                    onClick={() => {
-                      logout();
-                      setIsMenuOpen(false);
-                    }}
-                    className="text-sm font-medium text-red-600 dark:text-red-400 text-left"
-                  >
-                    Log Out
-                  </button>
+                  <li>
+                    <Link
+                      href="/profile"
+                      className="block py-2 text-gray-600 dark:text-gray-300"
+                      onClick={toggleMenu}
+                    >
+                      My Profile
+                    </Link>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => {
+                        logout();
+                        toggleMenu();
+                      }}
+                      className="block py-2 text-red-600 dark:text-red-400"
+                    >
+                      Log Out
+                    </button>
+                  </li>
                 </>
               ) : (
                 <>
-                  <Link
-                    href="/login"
-                    className="text-sm font-medium text-gray-600 dark:text-gray-300"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Log In
-                  </Link>
-                  <Link
-                    href="/register"
-                    className="bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium inline-block w-fit"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Sign Up
-                  </Link>
+                  <li>
+                    <Link
+                      href="/login"
+                      className="block py-2 text-gray-600 dark:text-gray-300"
+                      onClick={toggleMenu}
+                    >
+                      Log In
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/register"
+                      className="block py-2 text-blue-600 dark:text-blue-400"
+                      onClick={toggleMenu}
+                    >
+                      Sign Up
+                    </Link>
+                  </li>
                 </>
               )}
-            </div>
-          </div>
-        )}
+            </ul>
+          </nav>
+        </div>
       </div>
     </header>
   );
