@@ -145,16 +145,38 @@ export const RoadmapProvider = ({ children }: { children: ReactNode }) => {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const response = await fetch(`/api/roadmaps/${id}`, { headers });
+      // Implement AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
       
-      if (!response.ok) {
+      try {
+        const response = await fetch(`/api/roadmaps/${id}`, { 
+          headers,
+          signal: controller.signal,
+          cache: 'no-store' // Prevent caching issues
+        });
+        
+        clearTimeout(timeoutId); // Clear timeout if response received
+        
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({ error: `Server returned ${response.status}` }));
+          throw new Error(data.error || `Failed to fetch roadmap (${response.status})`);
+        }
+        
         const data = await response.json();
-        throw new Error(data.error || 'Failed to fetch roadmap');
+        
+        if (!data.roadmap) {
+          throw new Error('Invalid roadmap data received from server');
+        }
+        
+        setCurrentRoadmap(data.roadmap);
+        return data.roadmap;
+      } catch (fetchError) {
+        if (fetchError instanceof DOMException && fetchError.name === 'AbortError') {
+          throw new Error('Request timed out while loading roadmap');
+        }
+        throw fetchError;
       }
-      
-      const data = await response.json();
-      setCurrentRoadmap(data.roadmap);
-      return data.roadmap;
     } catch (error) {
       console.error('Error fetching roadmap:', error);
       setError(error instanceof Error ? error.message : 'An unexpected error occurred');
