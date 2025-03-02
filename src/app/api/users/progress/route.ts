@@ -119,7 +119,7 @@ export async function GET(request: NextRequest) {
         }
       },
       orderBy: {
-        lastAccessedAt: 'desc'
+        updatedAt: 'desc'
       }
     };
 
@@ -128,35 +128,49 @@ export async function GET(request: NextRequest) {
       query.where.roadmapId = roadmapId;
     }
 
-    const progress = await prisma.userProgress.findMany(query);
-
-    // Group progress by roadmap for better client-side handling
-    const progressByRoadmap: Record<string, any> = {};
-    
-    progress.forEach(item => {
-      if (!progressByRoadmap[item.roadmapId]) {
-        progressByRoadmap[item.roadmapId] = {
-          roadmap: item.roadmap,
-          steps: []
-        };
-      }
+    try {
+      const progress = await prisma.userProgress.findMany(query);
       
-      progressByRoadmap[item.roadmapId].steps.push({
-        stepId: item.stepId,
-        step: item.step,
-        completed: item.completed,
-        quizScore: item.quizScore,
-        completedAt: item.completedAt
+      // Group progress by roadmap for better client-side handling
+      const progressByRoadmap: Record<string, any> = {};
+      
+      progress.forEach(item => {
+        // TypeScript can't infer that include adds these properties, so we check for them
+        const roadmapData = 'roadmap' in item ? item.roadmap : null;
+        const stepData = 'step' in item ? item.step : null;
+        
+        if (!progressByRoadmap[item.roadmapId] && roadmapData) {
+          progressByRoadmap[item.roadmapId] = {
+            roadmap: roadmapData,
+            steps: []
+          };
+        }
+        
+        if (progressByRoadmap[item.roadmapId] && stepData) {
+          progressByRoadmap[item.roadmapId].steps.push({
+            stepId: item.stepId,
+            step: stepData,
+            completed: item.completed,
+            quizScore: item.quizScore,
+            completedAt: item.completedAt
+          });
+        }
       });
-    });
 
-    return NextResponse.json({
-      progress: Object.values(progressByRoadmap)
-    });
+      return NextResponse.json({
+        progress: Object.values(progressByRoadmap)
+      });
+    } catch (error) {
+      console.error('Error fetching progress:', error);
+      return NextResponse.json(
+        { error: 'Failed to fetch user progress' },
+        { status: 500 }
+      );
+    }
   } catch (error) {
-    console.error('Error fetching progress:', error);
+    console.error('Error fetching roadmaps:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch progress' },
+      { error: 'Failed to fetch roadmaps' },
       { status: 500 }
     );
   }

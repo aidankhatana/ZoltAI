@@ -268,13 +268,25 @@ export interface QuizStructure {
   }[];
 }
 
-export async function generateQuiz(stepContent: string, difficulty: string): Promise<QuizStructure> {
+// Interface for quiz generation parameters
+export interface QuizGenerationParams {
+  stepContent: string;
+  stepTitle?: string;
+  difficulty?: string;
+}
+
+export async function generateQuiz({
+  stepContent,
+  stepTitle = '',
+  difficulty = 'intermediate'
+}: QuizGenerationParams): Promise<QuizStructure> {
   try {
-    console.log(`Generating quiz for content at ${difficulty} level`);
+    console.log(`Generating quiz for ${stepTitle ? `"${stepTitle}"` : 'content'} at ${difficulty} level`);
     
     const prompt = `
     Based on the following educational content, create a quiz to test the learner's understanding.
     Create 3-5 multiple-choice questions appropriate for a ${difficulty} skill level.
+    ${stepTitle ? `The content is about: "${stepTitle}"` : ''}
 
     Content:
     ${stepContent}
@@ -323,7 +335,7 @@ export async function generateQuiz(stepContent: string, difficulty: string): Pro
       // If in development environment, provide a fallback demo quiz
       if (process.env.NODE_ENV === 'development') {
         console.log('Using fallback demo quiz data');
-        return generateFallbackQuiz(stepContent, difficulty);
+        return generateFallbackQuiz({ stepContent, difficulty });
       }
       
       // Otherwise rethrow with better error message
@@ -336,9 +348,13 @@ export async function generateQuiz(stepContent: string, difficulty: string): Pro
 }
 
 // Fallback function to generate a demo quiz when the API fails
-function generateFallbackQuiz(content: string, difficulty: string): QuizStructure {
+function generateFallbackQuiz({
+  stepContent,
+  stepTitle = '',
+  difficulty = 'intermediate'
+}: QuizGenerationParams): QuizStructure {
   // Extract some keywords from the content to make the quiz somewhat relevant
-  const contentSample = content.substring(0, 100).replace(/[^\w\s]/gi, '');
+  const contentSample = stepContent.substring(0, 100).replace(/[^\w\s]/gi, '');
   const keywords = contentSample.split(' ')
     .filter(word => word.length > 4)
     .slice(0, 3);
@@ -384,13 +400,24 @@ function generateFallbackQuiz(content: string, difficulty: string): QuizStructur
   };
 }
 
-export async function generateStepContent(topic: string, stepTitle: string, difficulty: string): Promise<string> {
+// Interface for step content generation parameters
+export interface StepContentGenerationParams {
+  topic: string;
+  stepTitle: string;
+  skillLevel: string;
+}
+
+export async function generateStepContent({
+  topic,
+  stepTitle,
+  skillLevel
+}: StepContentGenerationParams): Promise<string> {
   try {
-    console.log(`Generating step content for: ${stepTitle} (${topic}) at ${difficulty} level`);
+    console.log(`Generating step content for: ${stepTitle} (${topic}) at ${skillLevel} level`);
     
     const prompt = `
     Create detailed educational content for a step in a learning roadmap about ${topic}.
-    The step is titled "${stepTitle}" and is targeted at ${difficulty} level learners.
+    The step is titled "${stepTitle}" and is targeted at ${skillLevel} level learners.
     
     The content should be comprehensive, educational, and include:
     - Clear explanations of concepts
@@ -412,7 +439,7 @@ export async function generateStepContent(topic: string, stepTitle: string, diff
       // If in development environment, provide fallback content
       if (process.env.NODE_ENV === 'development') {
         console.log('Using fallback demo step content');
-        return generateFallbackStepContent(topic, stepTitle, difficulty);
+        return generateFallbackStepContent({ topic, stepTitle, skillLevel });
       }
       
       // Otherwise rethrow with better error message
@@ -425,13 +452,13 @@ export async function generateStepContent(topic: string, stepTitle: string, diff
 }
 
 // Fallback function to generate demo step content when the API fails
-function generateFallbackStepContent(topic: string, stepTitle: string, difficulty: string): string {
+function generateFallbackStepContent({ topic, stepTitle, skillLevel }: StepContentGenerationParams): string {
   return `
 # ${stepTitle}
 
 ## Introduction to ${topic}
 
-This is a placeholder for detailed educational content about ${topic}, specifically focusing on "${stepTitle}" for ${difficulty} level learners. In a complete implementation, this section would contain 500-1000 words of high-quality content.
+This is a placeholder for detailed educational content about ${topic}, specifically focusing on "${stepTitle}" for ${skillLevel} level learners. In a complete implementation, this section would contain 500-1000 words of high-quality content.
 
 ## Key Concepts
 
@@ -445,7 +472,7 @@ When learning about ${topic}, especially at the ${stepTitle} stage, it's importa
 
 ## Examples and Exercises
 
-In a complete lesson, this section would provide concrete examples and practice exercises to help solidify your understanding. These would be tailored to your ${difficulty} skill level.
+In a complete lesson, this section would provide concrete examples and practice exercises to help solidify your understanding. These would be tailored to your ${skillLevel} skill level.
 
 ## Further Resources
 

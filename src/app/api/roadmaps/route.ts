@@ -46,93 +46,66 @@ export async function POST(request: NextRequest) {
       additionalInfo
     });
 
-    // Step 2: Start a transaction to create the roadmap and steps
-    const createdRoadmap = await prisma.$transaction(async (tx) => {
-      // Create roadmap
-      const roadmap = await tx.roadmap.create({
-        data: {
-          title: roadmapData.title,
-          description: roadmapData.description,
-          topic,
-          difficulty: roadmapData.difficulty,
-          estimatedTime: roadmapData.estimatedTime,
-          isPublic,
-          userId: user?.id // Link to user if authenticated
-        }
-      });
-
-      // Create steps with content
-      for (const [index, step] of roadmapData.steps.entries()) {
-        // Generate detailed content for this step
-        const content = await generateStepContent({
-          topic,
-          stepTitle: step.title,
-          skillLevel
-        });
-
-        // Generate quiz for this step
-        const quizData = await generateQuiz({
-          stepTitle: step.title,
-          stepContent: content
-        });
-
-        // Create step
-        const createdStep = await tx.step.create({
+    // Step 2: Start a transaction to create the roadmap and steps with increased timeout
+    const createdRoadmap = await prisma.$transaction(
+      async (tx) => {
+        // Create roadmap
+        const roadmap = await tx.roadmap.create({
           data: {
-            title: step.title,
-            description: step.description,
-            order: step.order || index + 1,
-            estimatedTime: step.estimatedTime,
-            content,
-            roadmapId: roadmap.id,
-            resources: {
-              create: step.resources.map((resource: any) => ({
-                title: resource.title,
-                url: resource.url,
-                type: resource.type
-              }))
-            }
+            title: roadmapData.title,
+            description: roadmapData.description,
+            topic,
+            difficulty: roadmapData.difficulty,
+            estimatedTime: roadmapData.estimatedTime,
+            isPublic,
+            userId: user?.id // Link to user if authenticated
           }
         });
 
-        // Create quiz for this step
-        if (quizData && quizData.questions && quizData.questions.length > 0) {
-          const quiz = await tx.quiz.create({
+        // Create steps without generating detailed content
+        for (const [index, step] of roadmapData.steps.entries()) {
+          // Use a placeholder for content instead of generating it
+          const placeholderContent = `# ${step.title}\n\nThis content will be generated when you view the step details.`;
+
+          // Create step with placeholder content
+          const createdStep = await tx.step.create({
             data: {
-              stepId: createdStep.id,
-              questions: {
-                create: quizData.questions.map((q: any) => ({
-                  text: q.text,
-                  options: q.options,
-                  correctOption: q.correctOption,
-                  explanation: q.explanation
+              title: step.title,
+              description: step.description,
+              order: step.order || index + 1,
+              estimatedTime: step.estimatedTime,
+              content: placeholderContent,
+              roadmapId: roadmap.id,
+              resources: {
+                create: step.resources.map((resource: any) => ({
+                  title: resource.title,
+                  url: resource.url,
+                  type: resource.type
                 }))
               }
             }
           });
-        }
-      }
 
-      // Return created roadmap with all relations
-      return tx.roadmap.findUnique({
-        where: { id: roadmap.id },
-        include: {
-          steps: {
-            include: {
-              resources: true,
-              quiz: {
-                include: {
-                  questions: true
-                }
+          // Skip quiz creation for now
+        }
+
+        // Return created roadmap with all relations
+        return tx.roadmap.findUnique({
+          where: { id: roadmap.id },
+          include: {
+            steps: {
+              include: {
+                resources: true
+              },
+              orderBy: {
+                order: 'asc'
               }
-            },
-            orderBy: {
-              order: 'asc'
             }
           }
-        }
-      });
-    });
+        });
+      },
+      { timeout: 60000 }
+    );
 
     return NextResponse.json({
       message: 'Roadmap created successfully',
