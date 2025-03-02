@@ -113,4 +113,4 @@ body {
   .theme-toggle {
     @apply p-2 rounded-full bg-sunset-100 dark:bg-sunset-800 text-sunset-800 dark:text-sunset-100 hover:bg-sunset-200 dark:hover:bg-sunset-700 transition duration-200;
   }
-}
+} 
