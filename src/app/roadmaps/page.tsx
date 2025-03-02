@@ -70,7 +70,7 @@ export default function RoadmapsPage() {
       description: 'Learn basic Spanish vocabulary, grammar, and conversation skills for everyday use.',
       category: 'languages',
       estimatedTime: '14 weeks',
-      image: 'https://images.unsplash.com/photo-1551601651-2a8555f1a136?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
+      image: 'https://images.unsplash.com/photo-1551225173-9ff53f34a959?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1074&q=80',
       popularity: 4.7
     }
   ];

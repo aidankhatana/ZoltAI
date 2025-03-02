@@ -19,12 +19,4 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={openSans.className}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <ClientLayout>
-            {children}
-          </ClientLayout>
-        </ThemeProvider>
-      </body>
-    </html>
-  )
-} 
+        <ThemeProvider attribute=

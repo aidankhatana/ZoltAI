@@ -4,7 +4,7 @@ import React from 'react';
 
 export default function AboutPage() {
   return (
-    <div className="container mx-auto px-4 py-12">
+    <div className="container mx-auto px-4 py-12 bg-white dark:bg-gray-900">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl md:text-4xl font-bold mb-6 text-gray-900 dark:text-white">
           About SophosAI
@@ -17,7 +17,7 @@ export default function AboutPage() {
             engaging, and tailored to each individual's unique learning style.
           </p>
           
-          <h2 className="text-2xl font-semibold mt-8 mb-4 text-gray-800 dark:text-gray-200">
+          <h2 className="text-2xl font-semibold mt-8 mb-4 text-gray-800 dark:text-gray-100">
             Our Vision
           </h2>
           
@@ -27,7 +27,7 @@ export default function AboutPage() {
             we create customized learning roadmaps that help learners achieve their goals efficiently.
           </p>
           
-          <h2 className="text-2xl font-semibold mt-8 mb-4 text-gray-800 dark:text-gray-200">
+          <h2 className="text-2xl font-semibold mt-8 mb-4 text-gray-800 dark:text-gray-100">
             How It Works
           </h2>
           
@@ -37,7 +37,7 @@ export default function AboutPage() {
             ensuring that your learning journey is always optimized for your success.
           </p>
           
-          <h2 className="text-2xl font-semibold mt-8 mb-4 text-gray-800 dark:text-gray-200">
+          <h2 className="text-2xl font-semibold mt-8 mb-4 text-gray-800 dark:text-gray-100">
             Join Us
           </h2>
           

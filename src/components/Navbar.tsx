@@ -27,7 +27,7 @@ export default function Navbar() {
   };
 
   return (
-    <header className="bg-white shadow-sm">
+    <header className="bg-white dark:bg-gray-900 shadow-sm dark:shadow-gray-800">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center py-4">
           {/* Logo */}
@@ -43,8 +43,8 @@ export default function Navbar() {
                 href={link.href}
                 className={`text-sm font-medium ${
                   isActive(link.href)
-                    ? 'text-blue-600'
-                    : 'text-gray-600 hover:text-blue-600 transition-colors'
+                    ? 'text-blue-600 dark:text-blue-400'
+                    : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors'
                 }`}
               >
                 {link.name}
@@ -59,13 +59,13 @@ export default function Navbar() {
               <div className="flex items-center space-x-4">
                 <Link
                   href="/profile"
-                  className="text-sm font-medium text-gray-600 hover:text-blue-600"
+                  className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
                 >
                   My Profile
                 </Link>
                 <button
                   onClick={logout}
-                  className="text-sm font-medium text-red-600 hover:text-red-700"
+                  className="text-sm font-medium text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                 >
                   Log Out
                 </button>
@@ -74,13 +74,13 @@ export default function Navbar() {
               <>
                 <Link
                   href="/login"
-                  className="text-sm font-medium text-gray-600 hover:text-blue-600"
+                  className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
                 >
                   Log In
                 </Link>
                 <Link
                   href="/register"
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                  className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
                 >
                   Sign Up
                 </Link>
@@ -97,7 +97,7 @@ export default function Navbar() {
               aria-label="Toggle menu"
             >
               <svg
-                className="w-6 h-6 text-gray-600"
+                className="w-6 h-6 text-gray-600 dark:text-gray-300"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -125,7 +125,7 @@ export default function Navbar() {
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-gray-200">
+          <div className="md:hidden py-4 border-t border-gray-200 dark:border-gray-700">
             <nav className="flex flex-col space-y-4 mb-4">
               {navLinks.map((link) => (
                 <Link
@@ -133,8 +133,8 @@ export default function Navbar() {
                   href={link.href}
                   className={`text-sm font-medium ${
                     isActive(link.href)
-                      ? 'text-blue-600'
-                      : 'text-gray-600'
+                      ? 'text-blue-600 dark:text-blue-400'
+                      : 'text-gray-600 dark:text-gray-300'
                   }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
@@ -142,12 +142,12 @@ export default function Navbar() {
                 </Link>
               ))}
             </nav>
-            <div className="flex flex-col space-y-4 pt-4 border-t border-gray-200">
+            <div className="flex flex-col space-y-4 pt-4 border-t border-gray-200 dark:border-gray-700">
               {user ? (
                 <>
                   <Link
                     href="/profile"
-                    className="text-sm font-medium text-gray-600"
+                    className="text-sm font-medium text-gray-600 dark:text-gray-300"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     My Profile
@@ -157,7 +157,7 @@ export default function Navbar() {
                       logout();
                       setIsMenuOpen(false);
                     }}
-                    className="text-sm font-medium text-red-600 text-left"
+                    className="text-sm font-medium text-red-600 dark:text-red-400 text-left"
                   >
                     Log Out
                   </button>
@@ -165,25 +165,4 @@ export default function Navbar() {
               ) : (
                 <>
                   <Link
-                    href="/login"
-                    className="text-sm font-medium text-gray-600"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Log In
-                  </Link>
-                  <Link
-                    href="/register"
-                    className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium inline-block w-fit"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Sign Up
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-    </header>
-  );
-} 
+             
