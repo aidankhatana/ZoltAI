@@ -1,59 +1,64 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-
-type Theme = 'light' | 'dark';
+import React, { useState, useEffect } from 'react';
+import { useTheme } from 'next-themes';
 
 export default function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>('light');
+  const [mounted, setMounted] = useState(false);
+  const { theme, setTheme } = useTheme();
 
+  // Wait for component to mount to avoid hydration mismatch
   useEffect(() => {
-    // Check if theme is stored in localStorage
-    const savedTheme = localStorage.getItem('theme') as Theme | null;
-    
-    // If no saved theme, check user preference
-    if (!savedTheme) {
-      const userPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setTheme(userPrefersDark ? 'dark' : 'light');
-      applyTheme(userPrefersDark ? 'dark' : 'light');
-    } else {
-      setTheme(savedTheme);
-      applyTheme(savedTheme);
-    }
+    setMounted(true);
   }, []);
 
-  const applyTheme = (newTheme: Theme) => {
-    // Apply to both html and body to ensure compatibility
-    if (newTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-      document.body.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      document.body.classList.remove('dark');
-    }
+  // Handle theme toggle
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark');
   };
 
-  const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-    applyTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
-  };
+  // Don't render anything until mounted to prevent hydration mismatch
+  if (!mounted) {
+    return <button className="w-10 h-10 p-2" aria-label="Loading theme toggle" />;
+  }
 
   return (
     <button
-      className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
       onClick={toggleTheme}
-      aria-label="Toggle theme"
-      title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+      className="w-10 h-10 p-2 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center transition-colors duration-200"
+      aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
     >
-      {theme === 'light' ? (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+      {theme === 'dark' ? (
+        // Sun icon for dark mode (click to switch to light)
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          className="w-5 h-5 text-yellow-300"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+          />
         </svg>
       ) : (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+        // Moon icon for light mode (click to switch to dark)
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          className="w-5 h-5 text-gray-700"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+          />
         </svg>
       )}
     </button>

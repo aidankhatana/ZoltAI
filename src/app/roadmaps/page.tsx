@@ -1,8 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 
@@ -100,7 +98,6 @@ export default function RoadmapsPage() {
 
   return (
     <div className="min-h-screen flex flex-col theme-sunset">
-      <Header />
       <main className="flex-grow">
         {/* Hero Section */}
         <section className="py-20 bg-gradient-sunset dark:from-sunset-900 dark:to-sunset-800">
@@ -257,7 +254,6 @@ export default function RoadmapsPage() {
           </div>
         </section>
       </main>
-      <Footer />
     </div>
   );
 } 

@@ -1,13 +1,14 @@
 import '@/styles/globals.css'
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Open_Sans } from 'next/font/google'
+import { ThemeProvider } from 'next-themes'
 import ClientLayout from '@/components/ClientLayout'
 
-const inter = Inter({ subsets: ['latin'] })
+const openSans = Open_Sans({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'SophosAI - Personalized Learning Paths',
-  description: 'Create customized learning roadmaps with AI-powered guidance',
+  title: 'SophosAI - Learning Pathways',
+  description: 'Create your personalized learning pathway',
 }
 
 export default function RootLayout({
@@ -16,11 +17,13 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="light">
-      <body className={`${inter.className} min-h-screen flex flex-col`}>
-        <ClientLayout>
-          {children}
-        </ClientLayout>
+    <html lang="en">
+      <body className={openSans.className}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <ClientLayout>
+            {children}
+          </ClientLayout>
+        </ThemeProvider>
       </body>
     </html>
   )

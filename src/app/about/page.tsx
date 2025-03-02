@@ -1,135 +1,53 @@
 'use client';
 
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { motion } from 'framer-motion';
+import React from 'react';
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen flex flex-col theme-sunset">
-      <Header />
-      <main className="flex-grow">
-        {/* Hero Section */}
-        <section className="py-20 bg-gradient-sunset dark:from-sunset-900 dark:to-sunset-800">
-          <div className="container mx-auto px-4 text-center">
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="text-4xl md:text-5xl font-bold text-white mb-6"
-            >
-              About SophosAI
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-xl text-white/80 max-w-3xl mx-auto mb-10"
-            >
-              Revolutionizing education through AI-powered personalized learning paths
-            </motion.p>
-          </div>
-        </section>
-
-        {/* Mission Section */}
-        <section className="py-16 bg-white dark:bg-gray-900">
-          <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto">
-              <motion.h2
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                viewport={{ once: true }}
-                className="text-3xl font-bold text-sunset-700 dark:text-sunset-300 mb-6"
-              >
-                Our Mission
-              </motion.h2>
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.1 }}
-                viewport={{ once: true }}
-                className="text-lg text-gray-600 dark:text-gray-300 mb-6"
-              >
-                At SophosAI, we believe that education should be accessible, personalized, and effective for everyone. Our mission is to democratize learning by leveraging artificial intelligence to create custom curriculum paths tailored to individual goals, learning styles, and current skill levels.
-              </motion.p>
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                viewport={{ once: true }}
-                className="text-lg text-gray-600 dark:text-gray-300"
-              >
-                By combining knowledge graph technology with reinforcement learning and sophisticated recommendation systems, we've built a platform that adapts to your progress, providing the right content at the right time to maximize your learning efficiency.
-              </motion.p>
-            </div>
-          </div>
-        </section>
-
-        {/* How It Works Section */}
-        <section className="py-16 bg-sunset-50 dark:bg-gray-800">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <motion.h2
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                viewport={{ once: true }}
-                className="text-3xl font-bold text-sunset-700 dark:text-sunset-300 mb-4"
-              >
-                How SophosAI Works
-              </motion.h2>
-            </div>
-            
-            <div className="max-w-5xl mx-auto">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.1 }}
-                  viewport={{ once: true }}
-                  className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-md"
-                >
-                  <div className="text-sunset-500 text-xl font-bold mb-2">01</div>
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Input Your Goals</h3>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    Tell us what you want to learn and your current level of expertise. Our AI analyzes your input to understand your specific needs.
-                  </p>
-                </motion.div>
-                
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                  viewport={{ once: true }}
-                  className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-md"
-                >
-                  <div className="text-sunset-500 text-xl font-bold mb-2">02</div>
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">AI Creates Your Roadmap</h3>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    Our knowledge graph and AI algorithms generate a personalized learning path with carefully sequenced content and estimated completion times.
-                  </p>
-                </motion.div>
-                
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.3 }}
-                  viewport={{ once: true }}
-                  className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-md"
-                >
-                  <div className="text-sunset-500 text-xl font-bold mb-2">03</div>
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Adaptive Learning</h3>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    As you progress, our platform adapts to your performance, adjusting content difficulty and focus areas to optimize your learning journey.
-                  </p>
-                </motion.div>
-              </div>
-            </div>
-          </div>
-        </section>
-      </main>
-      <Footer />
+    <div className="container mx-auto px-4 py-12">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-3xl md:text-4xl font-bold mb-6 text-gray-900 dark:text-white">
+          About SophosAI
+        </h1>
+        
+        <div className="prose dark:prose-invert max-w-none">
+          <p className="text-lg mb-6 text-gray-700 dark:text-gray-300">
+            SophosAI is an innovative platform designed to revolutionize personalized learning
+            through artificial intelligence. Our mission is to make education more accessible, 
+            engaging, and tailored to each individual's unique learning style.
+          </p>
+          
+          <h2 className="text-2xl font-semibold mt-8 mb-4 text-gray-800 dark:text-gray-200">
+            Our Vision
+          </h2>
+          
+          <p className="text-lg mb-6 text-gray-700 dark:text-gray-300">
+            We believe that everyone deserves a learning experience that adapts to their needs,
+            pace, and interests. By leveraging the latest advancements in artificial intelligence,
+            we create customized learning roadmaps that help learners achieve their goals efficiently.
+          </p>
+          
+          <h2 className="text-2xl font-semibold mt-8 mb-4 text-gray-800 dark:text-gray-200">
+            How It Works
+          </h2>
+          
+          <p className="text-lg mb-6 text-gray-700 dark:text-gray-300">
+            SophosAI analyzes your learning preferences, existing knowledge, and goals to create
+            a personalized learning pathway. Our algorithm continuously adapts based on your progress,
+            ensuring that your learning journey is always optimized for your success.
+          </p>
+          
+          <h2 className="text-2xl font-semibold mt-8 mb-4 text-gray-800 dark:text-gray-200">
+            Join Us
+          </h2>
+          
+          <p className="text-lg mb-6 text-gray-700 dark:text-gray-300">
+            Whether you're looking to master a new skill, advance in your career, or explore a 
+            new hobby, SophosAI is here to guide you every step of the way. Start your 
+            personalized learning journey today!
+          </p>
+        </div>
+      </div>
     </div>
   );
-} // Test comment
+}

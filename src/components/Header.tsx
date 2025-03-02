@@ -14,7 +14,7 @@ const Header = () => {
       <div className="container mx-auto px-4 py-4">
         <div className="flex justify-between items-center">
           <div className="flex items-center">
-            <Link href="/" className="text-2xl font-bold text-primary">
+            <Link href="/" className="text-2xl font-bold text-primary dark:text-white">
               SophosAI
             </Link>
           </div>
@@ -39,7 +39,7 @@ const Header = () => {
               </>
             ) : (
               <>
-                <Link href="/login" className="text-gray-600 hover:text-primary dark:text-gray-300">
+                <Link href="/login" className="text-gray-600 hover:text-primary dark:text-gray-300 dark:hover:text-primary-300">
                   Sign In
                 </Link>
                 <Link href="/register" className="btn-primary">
@@ -68,8 +68,8 @@ const NavLink = ({ href, label, pathname }: NavLinkProps) => {
       href={href}
       className={`text-base font-medium transition duration-150 ease-in-out ${
         isActive 
-          ? 'text-primary border-b-2 border-primary' 
-          : 'text-gray-600 hover:text-primary dark:text-gray-300'
+          ? 'text-primary border-b-2 border-primary dark:text-primary-300 dark:border-primary-300' 
+          : 'text-gray-600 hover:text-primary dark:text-gray-300 dark:hover:text-primary-300'
       }`}
     >
       {label}
