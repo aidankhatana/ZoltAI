@@ -163,7 +163,7 @@ export async function POST(
     const results: Array<{
       questionId: string;
       correct: boolean;
-      explanation: string;
+      explanation: string | null;
     }> = [];
 
     answers.forEach((answer: { questionId: string; selectedOption: number }) => {
@@ -174,7 +174,7 @@ export async function POST(
         results.push({
           questionId: answer.questionId,
           correct: isCorrect,
-          explanation: question.explanation
+          explanation: question.explanation || null
         });
         
         if (isCorrect) {

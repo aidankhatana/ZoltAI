@@ -3,9 +3,13 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import prisma from '@/lib/db/prisma';
 
+// Check JWT_SECRET at startup
 if (!process.env.JWT_SECRET) {
   throw new Error('JWT_SECRET environment variable is not set');
 }
+
+// Store JWT_SECRET in a constant to ensure it's not undefined
+const JWT_SECRET = process.env.JWT_SECRET as string;
 
 export async function POST(request: Request) {
   try {
@@ -48,7 +52,7 @@ export async function POST(request: Request) {
         email: user.email,
         name: user.name 
       },
-      process.env.JWT_SECRET,
+      JWT_SECRET,
       { expiresIn: '7d' }
     );
 

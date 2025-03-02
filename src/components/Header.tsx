@@ -68,13 +68,4 @@ const NavLink = ({ href, label, pathname }: NavLinkProps) => {
       href={href}
       className={`text-base font-medium transition duration-150 ease-in-out ${
         isActive 
-          ? 'text-primary border-b-2 border-primary dark:text-primary-300 dark:border-primary-300' 
-          : 'text-gray-600 hover:text-primary dark:text-gray-300 dark:hover:text-primary-300'
-      }`}
-    >
-      {label}
-    </Link>
-  );
-};
-
-export default Header; 
+   

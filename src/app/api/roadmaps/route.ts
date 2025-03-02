@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateRoadmap, generateStepContent, generateQuiz } from '@/lib/gemini';
+import { generateRoadmap } from '@/lib/gemini';
 import prisma from '@/lib/db/prisma';
 import jwt from 'jsonwebtoken';
 
