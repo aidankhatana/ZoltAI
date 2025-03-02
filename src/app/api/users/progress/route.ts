@@ -151,4 +151,19 @@ export async function GET(request: NextRequest) {
           step: stepData,
           completed: item.completed,
           quizScore: item.quizScore,
-          completedAt: item
+          completedAt: item.completedAt
+        });
+      }
+    });
+
+    return NextResponse.json({
+      progress: Object.values(progressByRoadmap)
+    });
+  } catch (error) {
+    console.error('Error fetching progress:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch user progress' },
+      { status: 500 }
+    );
+  }
+} 
