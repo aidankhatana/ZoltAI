@@ -102,12 +102,4 @@ const Hero = () => {
                   Create Your Roadmap
                 </Link>
               </div>
-            </div>
-          </motion.div>
-        </div>
-      </div>
-    </section>
-  );
-};
-
-export default Hero; 
+        
