@@ -81,7 +81,9 @@ export default function ProfilePage() {
                   <div>
                     <h1 className="text-3xl font-bold">{user.name || 'Learner'}</h1>
                     <p className="text-blue-100">{user.email}</p>
-                    <p className="mt-2 text-sm text-blue-100">Member since {new Date(user.createdAt || Date.now()).toLocaleDateString()}</p>
+                    <p className="mt-2 text-sm text-blue-100">
+                      Member since {new Date(user.createdAt instanceof Date ? user.createdAt : user.createdAt || Date.now()).toLocaleDateString()}
+                    </p>
                   </div>
                 </div>
                 <div className="mt-6 md:mt-0">
