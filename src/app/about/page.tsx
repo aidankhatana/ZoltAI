@@ -47,4 +47,7 @@ export default function AboutPage() {
             personalized learning journey today!
           </p>
         </div>
-    
+      </div>
+    </div>
+  );
+}
