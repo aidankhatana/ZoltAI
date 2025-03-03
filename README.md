@@ -1,6 +1,6 @@
-# SophosAI - Personalized Learning Path Generator
+# ZoltAI - Personalized Learning Path Generator
 
-SophosAI is an AI-powered platform that creates personalized learning paths based on users' learning goals and current skill levels. The application leverages advanced technologies to provide customized curricula, adaptive quizzes, and interactive roadmaps with estimated completion times.
+ZoltAI is an AI-powered platform that creates personalized learning paths based on users' learning goals and current skill levels. The application leverages advanced technologies to provide customized educational roadmaps for various subjects.
 
 ## Features
 
@@ -31,8 +31,8 @@ SophosAI is an AI-powered platform that creates personalized learning paths base
 
 1. Clone the repository:
    ```
-   git clone https://github.com/yourusername/sophosai.git
-   cd sophosai
+   git clone https://github.com/yourusername/zoltai.git
+   cd zoltai
    ```
 
 2. Install dependencies:

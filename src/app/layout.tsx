@@ -6,7 +6,7 @@ import ClientLayout from '@/components/ClientLayout'
 const openSans = Open_Sans({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'SophosAI - Learning Pathways',
+  title: 'ZoltAI - Learning Pathways',
   description: 'Create your personalized learning pathway',
 }
 

@@ -8,12 +8,12 @@ export default function AboutPage() {
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-xl p-8">
           <h1 className="text-3xl md:text-4xl font-bold mb-6 text-gray-900 dark:text-white">
-            About SophosAI
+            About ZoltAI
           </h1>
           
           <div className="prose dark:prose-invert max-w-none">
             <p className="text-lg mb-6 text-gray-700 dark:text-gray-300">
-              SophosAI is an innovative platform designed to revolutionize personalized learning
+              ZoltAI is an innovative platform designed to revolutionize personalized learning
               through artificial intelligence. Our mission is to make education more accessible, 
               engaging, and tailored to each individual's unique learning style.
             </p>
@@ -33,7 +33,7 @@ export default function AboutPage() {
             </h2>
             
             <p className="text-lg mb-6 text-gray-700 dark:text-gray-300">
-              SophosAI analyzes your learning preferences, existing knowledge, and goals to create
+              ZoltAI analyzes your learning preferences, existing knowledge, and goals to create
               a personalized learning pathway. Our algorithm continuously adapts based on your progress,
               ensuring that your learning journey is always optimized for your success.
             </p>
@@ -44,7 +44,7 @@ export default function AboutPage() {
             
             <p className="text-lg mb-6 text-gray-700 dark:text-gray-300">
               Whether you're looking to master a new skill, advance in your career, or explore a 
-              new hobby, SophosAI is here to guide you every step of the way. Start your 
+              new hobby, ZoltAI is here to guide you every step of the way. Start your 
               personalized learning journey today!
             </p>
           </div>

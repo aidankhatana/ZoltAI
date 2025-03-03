@@ -9,7 +9,7 @@ export default function RegisterPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="text-3xl font-bold text-primary inline-block">
-            SophosAI
+            ZoltAI
           </Link>
           <h2 className="mt-2 text-lg text-gray-600 dark:text-gray-300">
             Create your account to get started
