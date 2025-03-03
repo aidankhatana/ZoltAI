@@ -21,7 +21,7 @@ export async function GET(
       include: {
         questions: {
           orderBy: {
-            order: 'asc'
+            id: 'asc'
           }
         },
         step: {
@@ -100,7 +100,7 @@ export async function POST(
     
     // Create a map of question IDs to correct answers
     const questionMap = new Map(
-      quiz.questions.map((q: QuizQuestion) => [q.id, q.correctAnswer])
+      quiz.questions.map((q) => [q.id, q.correctOption.toString()])
     );
     
     // Check each answer against the correct answer
@@ -118,33 +118,32 @@ export async function POST(
       ? Math.round((correctAnswers / totalQuestions) * 100)
       : 0;
     
-    // Record the quiz attempt
-    const quizAttempt = await prisma.quizAttempt.create({
-      data: {
-        userId,
-        quizId,
-        score: scorePercentage,
-        answers: answers,
-        completedAt: new Date()
-      }
-    });
-    
-    // Update user progress for this step if it exists
+    // Record the progress in UserProgress instead of quizAttempt
     if (quiz.step) {
+      // Update the user's progress for this step
+      const progressKey = { 
+        userId_roadmapId_stepId: {
+          userId,
+          roadmapId: quiz.step.roadmapId,
+          stepId: quiz.step.id
+        }
+      };
+      
       const existingProgress = await prisma.userProgress.findFirst({
         where: {
           userId,
+          roadmapId: quiz.step.roadmapId,
           stepId: quiz.step.id
         }
       });
-      
+
       if (existingProgress) {
         await prisma.userProgress.update({
           where: { id: existingProgress.id },
           data: {
             quizScore: scorePercentage,
-            completed: scorePercentage >= 70, // Mark as completed if scored 70% or higher
-            completedAt: new Date()
+            completed: scorePercentage >= 70, 
+            completedAt: scorePercentage >= 70 ? new Date() : existingProgress.completedAt
           }
         });
       } else {
@@ -155,7 +154,7 @@ export async function POST(
             roadmapId: quiz.step.roadmapId,
             quizScore: scorePercentage,
             completed: scorePercentage >= 70,
-            completedAt: new Date()
+            completedAt: scorePercentage >= 70 ? new Date() : null
           }
         });
       }
@@ -174,43 +173,6 @@ export async function POST(
     console.error('Error scoring quiz:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to process quiz submission' },
-      { status: 500 }
-    );
-  }
-}
-here: {
-        userId_roadmapId_stepId: {
-          userId: user.id,
-          roadmapId: step.roadmapId,
-          stepId
-        }
-      },
-      update: {
-        quizScore: score,
-        completed: score >= 70, // Mark as completed if score is at least 70%
-        completedAt: score >= 70 ? new Date() : undefined
-      },
-      create: {
-        userId: user.id,
-        roadmapId: step.roadmapId,
-        stepId,
-        quizScore: score,
-        completed: score >= 70,
-        completedAt: score >= 70 ? new Date() : undefined
-      }
-    });
-
-    return NextResponse.json({
-      score,
-      totalQuestions,
-      correctCount,
-      results,
-      passed: score >= 70
-    });
-  } catch (error) {
-    console.error('Error submitting quiz:', error);
-    return NextResponse.json(
-      { error: 'Failed to process quiz submission' },
       { status: 500 }
     );
   }
