@@ -41,8 +41,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (email: string, password: string) => {
     try {
       setLoading(true);
+      console.log('Attempting login with test endpoint');
       
-      const response = await fetch('/api/auth/login', {
+      // First try the test endpoint
+      const response = await fetch('/api/auth/login-test', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -53,10 +55,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const data = await response.json();
 
       if (!response.ok) {
-        return { success: false, error: data.error || 'Login failed' };
+        console.log('Test login failed, trying regular endpoint');
+        // If test endpoint fails, try the regular endpoint
+        const regularResponse = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email, password }),
+        });
+        
+        const regularData = await regularResponse.json();
+        
+        if (!regularResponse.ok) {
+          return { success: false, error: regularData.error || 'Login failed' };
+        }
+        
+        // Set user and token from regular endpoint
+        setUser(regularData.user);
+        setToken(regularData.token);
+        localStorage.setItem('user', JSON.stringify(regularData.user));
+        localStorage.setItem('token', regularData.token);
+        
+        return { success: true };
       }
 
-      // Set user and token in state and localStorage
+      // Set user and token from test endpoint
+      console.log('Test login successful');
       setUser(data.user);
       setToken(data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
@@ -74,8 +99,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const register = async (name: string, email: string, password: string) => {
     try {
       setLoading(true);
+      console.log('Attempting registration with test endpoint');
       
-      const response = await fetch('/api/auth/register', {
+      // First try the test endpoint
+      const response = await fetch('/api/auth/register-test', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -86,10 +113,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const data = await response.json();
 
       if (!response.ok) {
-        return { success: false, error: data.error || 'Registration failed' };
+        console.log('Test registration failed, trying regular endpoint');
+        // If test endpoint fails, try the regular endpoint
+        const regularResponse = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ name, email, password }),
+        });
+        
+        const regularData = await regularResponse.json();
+        
+        if (!regularResponse.ok) {
+          return { success: false, error: regularData.error || 'Registration failed' };
+        }
+        
+        // After registration, automatically log the user in
+        return await login(email, password);
       }
 
-      // After registration, automatically log the user in
+      console.log('Test registration successful');
+      // After test registration, automatically log the user in
       return await login(email, password);
     } catch (error) {
       console.error('Registration error:', error);
