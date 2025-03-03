@@ -23,10 +23,10 @@ export default function CTA() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link 
-                href="/assessment" 
+                href="/register" 
                 className="btn-primary bg-sunset-600 hover:bg-sunset-700 dark:bg-sunset-700 dark:hover:bg-sunset-600 text-center"
               >
-                Start Free Assessment
+                Sign Up
               </Link>
               <Link 
                 href="/roadmaps" 

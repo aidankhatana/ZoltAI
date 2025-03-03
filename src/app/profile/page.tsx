@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
+import { useRoadmaps } from '@/contexts/RoadmapContext';
 
 interface Roadmap {
   id: string;
@@ -17,10 +18,12 @@ interface Roadmap {
 
 export default function ProfilePage() {
   const { user, logout } = useAuth();
+  const { deleteRoadmap } = useRoadmaps();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [userRoadmaps, setUserRoadmaps] = useState<Roadmap[]>([]);
   const [activeTab, setActiveTab] = useState('in-progress');
+  const [deletingRoadmapId, setDeletingRoadmapId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -97,6 +100,33 @@ export default function ProfilePage() {
 
     fetchUserRoadmaps();
   }, [user, router]);
+
+  // Add a handler for deleting roadmaps
+  const handleDeleteRoadmap = async (id: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (window.confirm('Are you sure you want to delete this roadmap? This action cannot be undone.')) {
+      setDeletingRoadmapId(id);
+      
+      try {
+        const success = await deleteRoadmap(id);
+        
+        if (success) {
+          // Remove the roadmap from the local state
+          setUserRoadmaps(prevRoadmaps => prevRoadmaps.filter(roadmap => roadmap.id !== id));
+          alert('Roadmap deleted successfully');
+        } else {
+          alert('Failed to delete roadmap. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error deleting roadmap:', error);
+        alert('An error occurred while deleting the roadmap.');
+      } finally {
+        setDeletingRoadmapId(null);
+      }
+    }
+  };
 
   if (!user) return null;
 
@@ -216,9 +246,25 @@ export default function ProfilePage() {
                               {roadmap.topic} • {roadmap.difficulty}
                             </p>
                           </div>
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                            {roadmap.progress}%
-                          </span>
+                          <div className="flex items-center space-x-2">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                              {roadmap.progress}%
+                            </span>
+                            <button
+                              onClick={(e) => handleDeleteRoadmap(roadmap.id, e)}
+                              disabled={deletingRoadmapId === roadmap.id}
+                              className="text-red-500 hover:text-red-700 transition-colors p-1"
+                              title="Delete roadmap"
+                            >
+                              {deletingRoadmapId === roadmap.id ? (
+                                <span className="animate-pulse">...</span>
+                              ) : (
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              )}
+                            </button>
+                          </div>
                         </div>
                         
                         <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mb-4">

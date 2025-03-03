@@ -82,6 +82,7 @@ interface RoadmapContextType {
   updateProgress: (roadmapId: string, stepId: string, completed: boolean, quizScore?: number) => Promise<boolean>;
   fetchUserProgress: () => Promise<void>;
   fetchRoadmapProgress: (roadmapId: string) => Promise<UserProgress | null>;
+  deleteRoadmap: (id: string) => Promise<boolean>;
 }
 
 const RoadmapContext = createContext<RoadmapContextType | undefined>(undefined);
@@ -335,6 +336,44 @@ export const RoadmapProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const deleteRoadmap = async (id: string): Promise<boolean> => {
+    try {
+      if (!token) {
+        console.error('Cannot delete roadmap: No authentication token available');
+        return false;
+      }
+
+      const response = await fetch(`/api/roadmaps/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({ error: `Failed with status ${response.status}` }));
+        throw new Error(data.error || 'Failed to delete roadmap');
+      }
+
+      // Update the roadmaps state by removing the deleted roadmap
+      setRoadmaps(prevRoadmaps => prevRoadmaps.filter(roadmap => roadmap.id !== id));
+      
+      // If the current roadmap is the one being deleted, clear it
+      if (currentRoadmap && currentRoadmap.id === id) {
+        setCurrentRoadmap(null);
+      }
+      
+      // Also update the user progress state to remove any progress for this roadmap
+      setUserProgress(prevProgress => prevProgress.filter(p => p.roadmap.id !== id));
+
+      return true;
+    } catch (error) {
+      console.error('Error deleting roadmap:', error);
+      setError(error instanceof Error ? error.message : 'Failed to delete roadmap');
+      return false;
+    }
+  };
+
   return (
     <RoadmapContext.Provider
       value={{
@@ -348,7 +387,8 @@ export const RoadmapProvider = ({ children }: { children: ReactNode }) => {
         createRoadmap,
         updateProgress,
         fetchUserProgress,
-        fetchRoadmapProgress
+        fetchRoadmapProgress,
+        deleteRoadmap
       }}
     >
       {children}
