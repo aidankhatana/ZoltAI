@@ -96,7 +96,7 @@ export default function RoadmapGenerator() {
                   id="topic"
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
-                  placeholder="Enter a topic (e.g., JavaScript, Machine Learning, Web Development)"
+                  placeholder="Enter a topic (e.g., Knitting, Algebra, Web Development)"
                   className="w-full p-4 rounded-lg border border-gray-300 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                   required
                 />
