@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { generateRoadmap } from '@/lib/gemini';
 import prisma from '@/lib/db/prisma';
 import jwt from 'jsonwebtoken';
+import { verifyAuth } from '@/lib/auth';
 
 if (!process.env.JWT_SECRET) {
   throw new Error('JWT_SECRET environment variable is not set');
@@ -17,7 +18,7 @@ const getUserFromToken = (request: NextRequest) => {
 
   try {
     return jwt.verify(token, process.env.JWT_SECRET as string) as {
-      id: string;
+      userId: string;
       email: string;
     };
   } catch (error) {
@@ -27,94 +28,76 @@ const getUserFromToken = (request: NextRequest) => {
 
 export async function POST(request: NextRequest) {
   try {
-    // Get user from token (optional - public roadmaps allowed)
-    const user = getUserFromToken(request);
+    const { userId, token } = await verifyAuth(request);
+    
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
     
     const { topic, skillLevel, additionalInfo, isPublic = false } = await request.json();
-
-    if (!topic || !skillLevel) {
+    
+    if (!topic) {
       return NextResponse.json(
-        { error: 'Topic and skill level are required' },
+        { success: false, error: 'Topic is required' },
         { status: 400 }
       );
     }
 
-    // Step 1: Generate roadmap structure
+    // Generate roadmap content using Gemini API
     const roadmapData = await generateRoadmap({
       topic,
-      skillLevel,
+      skillLevel: skillLevel || 'Beginner',
       additionalInfo
     });
-
-    // Step 2: Start a transaction to create the roadmap and steps with increased timeout
-    const createdRoadmap = await prisma.$transaction(
-      async (tx) => {
-        // Create roadmap
-        const roadmap = await tx.roadmap.create({
-          data: {
-            title: roadmapData.title,
-            description: roadmapData.description,
-            topic,
-            difficulty: roadmapData.difficulty,
-            estimatedTime: roadmapData.estimatedTime,
-            isPublic,
-            userId: user?.id // Link to user if authenticated
-          }
-        });
-
-        // Create steps without generating detailed content
-        for (const [index, step] of roadmapData.steps.entries()) {
-          // Use a placeholder for content instead of generating it
-          const placeholderContent = `# ${step.title}\n\nThis content will be generated when you view the step details.`;
-
-          // Create step with placeholder content
-          const createdStep = await tx.step.create({
-            data: {
-              title: step.title,
-              description: step.description,
-              order: step.order || index + 1,
-              estimatedTime: step.estimatedTime,
-              content: placeholderContent,
-              roadmapId: roadmap.id,
-              resources: {
-                create: step.resources.map((resource: any) => ({
-                  title: resource.title,
-                  url: resource.url,
-                  type: resource.type
-                }))
-              }
+    
+    // Create the roadmap in the database
+    const roadmap = await prisma.roadmap.create({
+      data: {
+        topic,
+        title: roadmapData.title,
+        description: roadmapData.description,
+        difficulty: skillLevel || 'Beginner',
+        estimatedTime: roadmapData.estimatedTime,
+        isPublic,
+        userId,
+        steps: {
+          create: roadmapData.steps.map(step => ({
+            title: step.title,
+            description: step.description,
+            order: step.order,
+            estimatedTime: step.estimatedTime,
+            content: step.content,
+            resources: {
+              create: step.resources.map(resource => ({
+                title: resource.title || "Resource",
+                url: resource.url,
+                type: resource.type || "article"
+              }))
             }
-          });
-
-          // Skip quiz creation for now
+          }))
         }
-
-        // Return created roadmap with all relations
-        return tx.roadmap.findUnique({
-          where: { id: roadmap.id },
-          include: {
-            steps: {
-              include: {
-                resources: true
-              },
-              orderBy: {
-                order: 'asc'
-              }
-            }
-          }
-        });
       },
-      { timeout: 60000 }
-    );
-
-    return NextResponse.json({
-      message: 'Roadmap created successfully',
-      roadmap: createdRoadmap
-    }, { status: 201 });
+      include: {
+        steps: {
+          orderBy: {
+            order: 'asc'
+          }
+        }
+      }
+    });
+    
+    return NextResponse.json({ 
+      success: true, 
+      roadmap,
+      message: 'Roadmap created successfully' 
+    });
   } catch (error) {
     console.error('Error creating roadmap:', error);
     return NextResponse.json(
-      { error: 'Failed to create roadmap' },
+      { success: false, error: 'Failed to create roadmap' },
       { status: 500 }
     );
   }
@@ -122,55 +105,24 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
-    const isPublic = searchParams.get('public') === 'true';
-    const topic = searchParams.get('topic');
+    const url = new URL(request.url);
+    const userId = url.searchParams.get('userId');
+    const isPublic = url.searchParams.get('isPublic') === 'true';
     
-    const user = getUserFromToken(request);
-    
-    // Build query filters
-    const filters: any = {};
-    
-    if (isPublic) {
-      filters.isPublic = true;
-    }
+    let whereClause: any = {};
     
     if (userId) {
-      filters.userId = userId;
+      whereClause.userId = userId;
     }
     
-    if (topic) {
-      filters.topic = {
-        contains: topic,
-        mode: 'insensitive'
-      };
+    if (isPublic !== null) {
+      whereClause.isPublic = isPublic;
     }
     
-    // If user is requesting their own roadmaps, we can show private ones too
-    if (user && user.id === userId) {
-      // Let them see all their roadmaps, both public and private
-      delete filters.isPublic;
-    } else if (!isPublic && !user) {
-      // If not public and no authenticated user, return error
-      return NextResponse.json(
-        { error: 'Authentication required to view private roadmaps' },
-        { status: 401 }
-      );
-    }
-    
-    // Get roadmaps
     const roadmaps = await prisma.roadmap.findMany({
-      where: filters,
+      where: whereClause,
       include: {
         steps: {
-          select: {
-            id: true,
-            title: true,
-            description: true,
-            order: true,
-            estimatedTime: true
-          },
           orderBy: {
             order: 'asc'
           }
@@ -178,7 +130,8 @@ export async function GET(request: NextRequest) {
         user: {
           select: {
             id: true,
-            name: true
+            name: true,
+            email: true
           }
         }
       },
@@ -187,11 +140,11 @@ export async function GET(request: NextRequest) {
       }
     });
     
-    return NextResponse.json({ roadmaps });
+    return NextResponse.json({ success: true, roadmaps });
   } catch (error) {
     console.error('Error fetching roadmaps:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch roadmaps' },
+      { success: false, error: 'Failed to fetch roadmaps' },
       { status: 500 }
     );
   }

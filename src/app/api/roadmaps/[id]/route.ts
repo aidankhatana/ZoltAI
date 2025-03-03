@@ -16,7 +16,7 @@ const getUserFromToken = (request: NextRequest) => {
 
   try {
     return jwt.verify(token, process.env.JWT_SECRET as string) as {
-      id: string;
+      userId: string;
       email: string;
     };
   } catch (error) {
@@ -66,7 +66,7 @@ export async function GET(
     if (!roadmap.isPublic) {
       const user = getUserFromToken(request);
       
-      if (!user || (roadmap.userId && user.id !== roadmap.userId)) {
+      if (!user || (roadmap.userId && user.userId !== roadmap.userId)) {
         return NextResponse.json(
           { error: 'Unauthorized to access this roadmap' },
           { status: 403 }
@@ -113,7 +113,7 @@ export async function DELETE(
     }
 
     // Check if the user owns this roadmap
-    if (roadmap.userId !== user.id) {
+    if (roadmap.userId !== user.userId) {
       return NextResponse.json(
         { error: 'Unauthorized to delete this roadmap' },
         { status: 403 }
@@ -167,7 +167,7 @@ export async function PATCH(
     }
 
     // Check if the user owns this roadmap
-    if (roadmap.userId !== user.id) {
+    if (roadmap.userId !== user.userId) {
       return NextResponse.json(
         { error: 'Unauthorized to update this roadmap' },
         { status: 403 }

@@ -78,11 +78,9 @@ export default function RoadmapPage({ params }: RoadmapPageProps) {
         setActiveStep(roadmapData.steps[0].id);
       }
       
-      // Set a short delay to ensure content is properly rendered before showing
-      setTimeout(() => {
-        setContentReady(true);
-        setPageLoading(false);
-      }, 300);
+      // Set content ready immediately without the delay
+      setContentReady(true);
+      setPageLoading(false);
       
     } catch (err) {
       console.error("Error loading roadmap:", err);
@@ -91,17 +89,11 @@ export default function RoadmapPage({ params }: RoadmapPageProps) {
     }
   }, [id, user, fetchRoadmap, fetchRoadmapProgress]);
 
+  // Only trigger the loadRoadmap function on initial render and when id changes
   useEffect(() => {
-    let isMounted = true;
-    
-    if (isMounted) {
-      loadRoadmap();
-    }
-    
-    return () => {
-      isMounted = false;
-    };
-  }, [loadRoadmap]);
+    loadRoadmap();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
   
   // Add retry functionality
   const handleRetry = () => {

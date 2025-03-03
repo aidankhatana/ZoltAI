@@ -1,7 +1,6 @@
 import '@/styles/globals.css'
 import type { Metadata } from 'next'
 import { Open_Sans } from 'next/font/google'
-import { ThemeProvider } from 'next-themes'
 import ClientLayout from '@/components/ClientLayout'
 
 const openSans = Open_Sans({ subsets: ['latin'] })
@@ -19,11 +18,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={openSans.className}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <ClientLayout>
-            {children}
-          </ClientLayout>
-        </ThemeProvider>
+        <ClientLayout>
+          {children}
+        </ClientLayout>
       </body>
     </html>
   )

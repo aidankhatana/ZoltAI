@@ -1,107 +1,69 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
-import jwt from 'jsonwebtoken';
+import { verifyAuth } from '@/lib/auth';
 
-if (!process.env.JWT_SECRET) {
-  throw new Error('JWT_SECRET environment variable is not set');
+interface Step {
+  id: string;
+  title: string;
+  order: number;
+  roadmapId: string;
 }
 
-// Helper to extract user from token
-const getUserFromToken = (request: NextRequest) => {
-  const token = request.headers.get('authorization')?.split(' ')[1];
-  
-  if (!token) {
-    return null;
-  }
-
-  try {
-    return jwt.verify(token, process.env.JWT_SECRET as string) as {
-      id: string;
-      email: string;
-    };
-  } catch (error) {
-    return null;
-  }
-};
-
-// Update progress for a specific step
-export async function POST(request: NextRequest) {
-  try {
-    const user = getUserFromToken(request);
-    
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
-    }
-
-    const { roadmapId, stepId, completed, quizScore } = await request.json();
-
-    if (!roadmapId || !stepId) {
-      return NextResponse.json(
-        { error: 'Roadmap ID and Step ID are required' },
-        { status: 400 }
-      );
-    }
-
-    // Update or create progress record
-    const progress = await prisma.userProgress.upsert({
-      where: {
-        userId_roadmapId_stepId: {
-          userId: user.id,
-          roadmapId,
-          stepId
-        }
-      },
-      update: {
-        completed: completed !== undefined ? completed : undefined,
-        quizScore: quizScore !== undefined ? quizScore : undefined,
-        completedAt: completed ? new Date() : undefined
-      },
-      create: {
-        userId: user.id,
-        roadmapId,
-        stepId,
-        completed: completed || false,
-        quizScore: quizScore,
-        completedAt: completed ? new Date() : undefined
-      }
-    });
-
-    return NextResponse.json({
-      message: 'Progress updated successfully',
-      progress
-    });
-  } catch (error) {
-    console.error('Error updating progress:', error);
-    return NextResponse.json(
-      { error: 'Failed to update progress' },
-      { status: 500 }
-    );
-  }
+interface Roadmap {
+  id: string;
+  title: string;
+  topic: string;
+  difficulty: string;
 }
 
-// Get all progress for a user
+interface UserProgress {
+  id: string | null;
+  userId: string;
+  roadmapId: string;
+  stepId: string;
+  completed: boolean;
+  quizScore: number | null;
+  completedAt: Date | null;
+  step?: Step;
+  roadmap?: Roadmap;
+}
+
+// Get user progress for all roadmaps or a specific roadmap
 export async function GET(request: NextRequest) {
   try {
-    const user = getUserFromToken(request);
+    const { userId, token } = await verifyAuth(request);
     
-    if (!user) {
+    if (!userId) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { success: false, error: 'Authentication required' },
         { status: 401 }
       );
     }
-
-    const { searchParams } = new URL(request.url);
-    const roadmapId = searchParams.get('roadmapId');
-
-    let query: any = {
-      where: {
-        userId: user.id
-      },
+    
+    const url = new URL(request.url);
+    const roadmapId = url.searchParams.get('roadmapId');
+    
+    // Query parameters for the database
+    const whereClause: any = {
+      userId
+    };
+    
+    if (roadmapId) {
+      whereClause.roadmapId = roadmapId;
+    }
+    
+    // Get user progress
+    const userProgress = await prisma.userProgress.findMany({
+      where: whereClause,
       include: {
+        step: {
+          select: {
+            id: true,
+            title: true,
+            order: true,
+            roadmapId: true
+          }
+        },
         roadmap: {
           select: {
             id: true,
@@ -109,61 +71,155 @@ export async function GET(request: NextRequest) {
             topic: true,
             difficulty: true
           }
-        },
-        step: {
-          select: {
-            id: true,
-            title: true,
-            order: true
-          }
         }
       },
       orderBy: {
-        updatedAt: 'desc'
-      }
-    };
-
-    // Filter by roadmap if provided
-    if (roadmapId) {
-      query.where.roadmapId = roadmapId;
-    }
-
-    const progress = await prisma.userProgress.findMany(query);
-    
-    // Group progress by roadmap for better client-side handling
-    const progressByRoadmap: Record<string, any> = {};
-    
-    progress.forEach(item => {
-      // TypeScript can't infer that include adds these properties, so we check for them
-      const roadmapData = 'roadmap' in item ? item.roadmap : null;
-      const stepData = 'step' in item ? item.step : null;
-      
-      if (!progressByRoadmap[item.roadmapId] && roadmapData) {
-        progressByRoadmap[item.roadmapId] = {
-          roadmap: roadmapData,
-          steps: []
-        };
-      }
-      
-      if (progressByRoadmap[item.roadmapId] && stepData) {
-        progressByRoadmap[item.roadmapId].steps.push({
-          stepId: item.stepId,
-          step: stepData,
-          completed: item.completed,
-          quizScore: item.quizScore,
-          completedAt: item.completedAt
-        });
+        completedAt: 'desc'
       }
     });
-
-    return NextResponse.json({
-      progress: Object.values(progressByRoadmap)
+    
+    // If a specific roadmap was requested, also get the steps that don't have progress
+    if (roadmapId) {
+      const roadmap = await prisma.roadmap.findUnique({
+        where: { id: roadmapId },
+        include: {
+          steps: {
+            orderBy: {
+              order: 'asc'
+            }
+          }
+        }
+      });
+      
+      if (!roadmap) {
+        return NextResponse.json(
+          { success: false, error: 'Roadmap not found' },
+          { status: 404 }
+        );
+      }
+      
+      // Create a map of existing progress entries
+      const progressMap = new Map(
+        userProgress.map((progress: UserProgress) => [progress.stepId, progress])
+      );
+      
+      // Create complete progress data including steps without progress
+      const completeProgress = roadmap.steps.map((step: Step) => {
+        const progress = progressMap.get(step.id);
+        
+        if (progress) {
+          return progress;
+        }
+        
+        // Return a default progress object for steps without progress
+        return {
+          id: null,
+          userId,
+          roadmapId,
+          stepId: step.id,
+          completed: false,
+          quizScore: null,
+          completedAt: null,
+          step: {
+            id: step.id,
+            title: step.title,
+            order: step.order,
+            roadmapId
+          },
+          roadmap: {
+            id: roadmapId,
+            title: roadmap.title,
+            topic: roadmap.topic,
+            difficulty: roadmap.difficulty
+          }
+        };
+      });
+      
+      return NextResponse.json({ 
+        success: true, 
+        progress: completeProgress,
+        roadmapTitle: roadmap.title
+      });
+    }
+    
+    return NextResponse.json({ 
+      success: true, 
+      progress: userProgress 
     });
   } catch (error) {
-    console.error('Error fetching progress:', error);
+    console.error('Error fetching user progress:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch user progress' },
+      { success: false, error: 'Failed to fetch user progress' },
       { status: 500 }
     );
   }
-} 
+}
+
+// Update user progress for a specific step
+export async function POST(request: NextRequest) {
+  try {
+    const { userId, token } = await verifyAuth(request);
+    
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+    
+    const { roadmapId, stepId, completed, quizScore } = await request.json();
+    
+    if (!roadmapId || !stepId) {
+      return NextResponse.json(
+        { success: false, error: 'Roadmap ID and Step ID are required' },
+        { status: 400 }
+      );
+    }
+    
+    // Check if user progress already exists
+    const existingProgress = await prisma.userProgress.findFirst({
+      where: {
+        userId,
+        roadmapId,
+        stepId
+      }
+    });
+    
+    let userProgress;
+    
+    if (existingProgress) {
+      // Update existing progress
+      userProgress = await prisma.userProgress.update({
+        where: { id: existingProgress.id },
+        data: {
+          completed: completed !== undefined ? completed : existingProgress.completed,
+          quizScore: quizScore !== undefined ? quizScore : existingProgress.quizScore,
+          completedAt: completed ? new Date() : existingProgress.completedAt
+        }
+      });
+    } else {
+      // Create new progress
+      userProgress = await prisma.userProgress.create({
+        data: {
+          userId,
+          roadmapId,
+          stepId,
+          completed: !!completed,
+          quizScore,
+          completedAt: completed ? new Date() : null
+        }
+      });
+    }
+    
+    return NextResponse.json({ 
+      success: true, 
+      progress: userProgress 
+    });
+  } catch (error) {
+    console.error('Error updating user progress:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to update user progress' },
+      { status: 500 }
+    );
+  }
+}

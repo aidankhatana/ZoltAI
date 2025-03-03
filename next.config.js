@@ -7,21 +7,16 @@ const nextConfig = {
   },
   // Increase memory limit for the build process
   experimental: {
-    largePageDataBytes: 512 * 1000, // 512KB
-    serverComponentsExternalPackages: ['@prisma/client'],
+    serverComponentsExternalPackages: []
   },
   // Optimize production builds
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
   // Configure webpack to increase memory limit
-  webpack: (config, { isServer }) => {
-    // Increase memory limit for webpack
-    config.performance = {
-      hints: false, // Don't throw warnings on large bundles
-      maxEntrypointSize: 512000, // 500KB
-      maxAssetSize: 512000, // 500KB
-    };
+  webpack: (config) => {
+    // Fix for webpack errors with recent Node versions
+    config.resolve.fallback = { fs: false, path: false };
     return config;
   },
 };

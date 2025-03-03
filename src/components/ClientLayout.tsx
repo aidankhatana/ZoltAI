@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { ReactNode } from 'react';
+import { ThemeProvider } from 'next-themes';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { RoadmapProvider } from '@/contexts/RoadmapContext';
 import Navbar from './Navbar';
@@ -19,14 +20,16 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
   }, []);
 
   return (
-    <AuthProvider>
-      <RoadmapProvider>
-        <div className="flex flex-col min-h-screen">
-          <Navbar />
-          <main className="flex-grow">{children}</main>
-          <Footer />
-        </div>
-      </RoadmapProvider>
-    </AuthProvider>
+    <ThemeProvider attribute="class">
+      <AuthProvider>
+        <RoadmapProvider>
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <main className="flex-grow">{children}</main>
+            <Footer />
+          </div>
+        </RoadmapProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
-} 
+}

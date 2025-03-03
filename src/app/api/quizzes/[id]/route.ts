@@ -1,194 +1,184 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
-import jwt from 'jsonwebtoken';
+import { verifyAuth } from '@/lib/auth';
 
-if (!process.env.JWT_SECRET) {
-  throw new Error('JWT_SECRET environment variable is not set');
+interface QuizQuestion {
+  id: string;
+  correctAnswer: string;
 }
 
-// Helper to extract user from token
-const getUserFromToken = (request: NextRequest) => {
-  const token = request.headers.get('authorization')?.split(' ')[1];
-  
-  if (!token) {
-    return null;
-  }
-
-  try {
-    return jwt.verify(token, process.env.JWT_SECRET as string) as {
-      id: string;
-      email: string;
-    };
-  } catch (error) {
-    return null;
-  }
-};
-
-// Get quiz by step ID
+// Get a quiz by ID
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const stepId = params.id;
+    const id = params.id;
     
-    // Verify step exists
-    const step = await prisma.step.findUnique({
-      where: { id: stepId },
-      include: {
-        roadmap: {
-          select: {
-            isPublic: true,
-            userId: true
-          }
-        }
-      }
-    });
-
-    if (!step) {
-      return NextResponse.json(
-        { error: 'Step not found' },
-        { status: 404 }
-      );
-    }
-
-    // Check if user has access to this step's roadmap
-    if (!step.roadmap.isPublic) {
-      const user = getUserFromToken(request);
-      
-      if (!user || (step.roadmap.userId && user.id !== step.roadmap.userId)) {
-        return NextResponse.json(
-          { error: 'Unauthorized to access this quiz' },
-          { status: 403 }
-        );
-      }
-    }
-
-    // Get quiz for this step
+    // Find the quiz
     const quiz = await prisma.quiz.findUnique({
-      where: { stepId },
+      where: { id },
       include: {
         questions: {
+          orderBy: {
+            order: 'asc'
+          }
+        },
+        step: {
           select: {
             id: true,
-            text: true,
-            options: true,
-            // Don't include correct answer in initial fetch
+            title: true,
+            roadmapId: true
           }
         }
       }
     });
-
+    
     if (!quiz) {
       return NextResponse.json(
-        { error: 'No quiz available for this step' },
+        { success: false, error: 'Quiz not found' },
         { status: 404 }
       );
     }
-
-    return NextResponse.json({ quiz });
+    
+    return NextResponse.json({ 
+      success: true, 
+      quiz 
+    });
   } catch (error) {
     console.error('Error fetching quiz:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch quiz' },
+      { success: false, error: 'Failed to fetch quiz' },
       { status: 500 }
     );
   }
 }
 
-// Submit quiz answers
+// Submit a quiz answer and get score
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const stepId = params.id;
-    const user = getUserFromToken(request);
+    const { userId } = await verifyAuth(request);
+    const quizId = params.id;
     const { answers } = await request.json();
     
-    if (!user) {
+    if (!userId) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { success: false, error: 'Authentication required' },
         { status: 401 }
       );
     }
-
-    if (!Array.isArray(answers)) {
+    
+    if (!answers || !Array.isArray(answers)) {
       return NextResponse.json(
-        { error: 'Answers must be an array' },
+        { success: false, error: 'Valid answers are required' },
         { status: 400 }
       );
     }
-
-    // Get step and roadmap
-    const step = await prisma.step.findUnique({
-      where: { id: stepId },
-      select: {
-        id: true,
-        roadmapId: true
-      }
-    });
-
-    if (!step) {
-      return NextResponse.json(
-        { error: 'Step not found' },
-        { status: 404 }
-      );
-    }
-
-    // Get quiz with correct answers
+    
+    // Get the quiz with questions and correct answers
     const quiz = await prisma.quiz.findUnique({
-      where: { stepId },
+      where: { id: quizId },
       include: {
-        questions: {
-          select: {
-            id: true,
-            correctOption: true,
-            explanation: true
-          }
-        }
+        questions: true,
+        step: true
       }
     });
-
+    
     if (!quiz) {
       return NextResponse.json(
-        { error: 'No quiz available for this step' },
+        { success: false, error: 'Quiz not found' },
         { status: 404 }
       );
     }
-
-    // Grade the quiz
-    const questionMap = new Map(quiz.questions.map(q => [q.id, q]));
-    let correctCount = 0;
-    const results: Array<{
-      questionId: string;
-      correct: boolean;
-      explanation: string | null;
-    }> = [];
-
-    answers.forEach((answer: { questionId: string; selectedOption: number }) => {
-      const question = questionMap.get(answer.questionId);
+    
+    // Score the quiz
+    let correctAnswers = 0;
+    const totalQuestions = quiz.questions.length;
+    
+    // Create a map of question IDs to correct answers
+    const questionMap = new Map(
+      quiz.questions.map((q: QuizQuestion) => [q.id, q.correctAnswer])
+    );
+    
+    // Check each answer against the correct answer
+    for (const answer of answers) {
+      const { questionId, selectedAnswer } = answer;
+      const correctAnswer = questionMap.get(questionId);
       
-      if (question) {
-        const isCorrect = answer.selectedOption === question.correctOption;
-        results.push({
-          questionId: answer.questionId,
-          correct: isCorrect,
-          explanation: question.explanation || null
-        });
-        
-        if (isCorrect) {
-          correctCount++;
-        }
+      if (correctAnswer && selectedAnswer === correctAnswer) {
+        correctAnswers++;
+      }
+    }
+    
+    // Calculate score percentage
+    const scorePercentage = totalQuestions > 0
+      ? Math.round((correctAnswers / totalQuestions) * 100)
+      : 0;
+    
+    // Record the quiz attempt
+    const quizAttempt = await prisma.quizAttempt.create({
+      data: {
+        userId,
+        quizId,
+        score: scorePercentage,
+        answers: answers,
+        completedAt: new Date()
       }
     });
-
-    const totalQuestions = quiz.questions.length;
-    const score = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
-
-    // Update user progress
-    await prisma.userProgress.upsert({
-      where: {
+    
+    // Update user progress for this step if it exists
+    if (quiz.step) {
+      const existingProgress = await prisma.userProgress.findFirst({
+        where: {
+          userId,
+          stepId: quiz.step.id
+        }
+      });
+      
+      if (existingProgress) {
+        await prisma.userProgress.update({
+          where: { id: existingProgress.id },
+          data: {
+            quizScore: scorePercentage,
+            completed: scorePercentage >= 70, // Mark as completed if scored 70% or higher
+            completedAt: new Date()
+          }
+        });
+      } else {
+        await prisma.userProgress.create({
+          data: {
+            userId,
+            stepId: quiz.step.id,
+            roadmapId: quiz.step.roadmapId,
+            quizScore: scorePercentage,
+            completed: scorePercentage >= 70,
+            completedAt: new Date()
+          }
+        });
+      }
+    }
+    
+    return NextResponse.json({
+      success: true,
+      score: {
+        correct: correctAnswers,
+        total: totalQuestions,
+        percentage: scorePercentage
+      },
+      isPassing: scorePercentage >= 70
+    });
+  } catch (error) {
+    console.error('Error scoring quiz:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to process quiz submission' },
+      { status: 500 }
+    );
+  }
+}
+here: {
         userId_roadmapId_stepId: {
           userId: user.id,
           roadmapId: step.roadmapId,
