@@ -17,31 +17,30 @@ export async function GET() {
     const maskedUrl = dbUrl.replace(/\/\/.*?@/, '//****:****@');
     console.log('Using database URL:', maskedUrl);
     
-    // Create a new PostgreSQL client
+    // Create a new PostgreSQL client with SSL configuration
     const pool = new Pool({
       connectionString: dbUrl,
       ssl: {
-        rejectUnauthorized: false // Required for some PostgreSQL providers
+        rejectUnauthorized: false // Required for self-signed certificates
       }
     });
     
-    // Test the connection
+    // Test the connection with a simple query
     const startTime = Date.now();
-    const result = await pool.query('SELECT COUNT(*) FROM "User"');
+    const result = await pool.query('SELECT 1 as test');
     const endTime = Date.now();
     
     // Close the connection
     await pool.end();
     
-    const userCount = parseInt(result.rows[0].count, 10);
     console.log(`Database query successful. Query took ${endTime - startTime}ms`);
-    console.log(`User count: ${userCount}`);
+    console.log(`Test result:`, result.rows[0]);
     
     // Return success response with appropriate headers
     const response = NextResponse.json({
       status: 'success',
       message: 'Successfully connected to database using pg',
-      userCount,
+      testResult: result.rows[0],
       queryTimeMs: endTime - startTime,
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV
