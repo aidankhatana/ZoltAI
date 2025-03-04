@@ -17,11 +17,23 @@ export async function GET() {
     const maskedUrl = dbUrl.replace(/\/\/.*?@/, '//****:****@');
     console.log('Using database URL:', maskedUrl);
     
-    // Create a new PostgreSQL client with SSL configuration
+    // Parse the connection string to extract components
+    const connectionMatch = dbUrl.match(/postgres:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/([^?]+)/);
+    if (!connectionMatch) {
+      throw new Error('Invalid PostgreSQL connection string format');
+    }
+    
+    const [, user, password, host, port, database] = connectionMatch;
+    
+    // Create a new PostgreSQL client with explicit configuration
     const pool = new Pool({
-      connectionString: dbUrl,
+      user,
+      password,
+      host,
+      port: parseInt(port, 10),
+      database,
       ssl: {
-        rejectUnauthorized: false // Required for self-signed certificates
+        rejectUnauthorized: false
       }
     });
     
