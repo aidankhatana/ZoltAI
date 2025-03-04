@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/db/prisma';
+import { PrismaClient } from '@prisma/client';
 
 // Updated runtime configuration
 export const runtime = "nodejs";
@@ -9,14 +9,26 @@ export async function GET() {
   
   try {
     // Log connection info (sanitized)
-    const dbUrl = process.env.POSTGRES_PRISMA_URL || process.env.DATABASE_URL || 'Not set';
+    const dbUrl = process.env.DIRECT_DATABASE_URL || process.env.DATABASE_URL || 'Not set';
     const maskedUrl = dbUrl.replace(/\/\/.*?@/, '//****:****@');
     console.log('Using database URL:', maskedUrl);
+    
+    // Create a new Prisma client instance with the direct URL
+    const prisma = new PrismaClient({
+      datasources: {
+        db: {
+          url: process.env.DIRECT_DATABASE_URL || process.env.DATABASE_URL
+        }
+      }
+    });
     
     // Simple query to test the connection
     const startTime = Date.now();
     const userCount = await prisma.user.count();
     const endTime = Date.now();
+    
+    // Disconnect the client
+    await prisma.$disconnect();
     
     console.log(`Database query successful. Query took ${endTime - startTime}ms`);
     console.log(`User count: ${userCount}`);
