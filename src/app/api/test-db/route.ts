@@ -1,6 +1,14 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
 
+// Add route configuration to make it public
+export const config = {
+  runtime: 'edge',
+  unstable_allowDynamic: [
+    '**/node_modules/lodash/**',
+  ],
+};
+
 export async function GET() {
   console.log('Database test endpoint called');
   
