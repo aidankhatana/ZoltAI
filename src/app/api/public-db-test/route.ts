@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
 
-// Configuration to make this route public
-export const config = {
-  runtime: 'nodejs'
-};
+// Updated runtime configuration
+export const runtime = "nodejs";
 
 export async function GET() {
   console.log('Public database test endpoint called');
