@@ -1,14 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
 
-// Add route configuration to make it public
-export const config = {
-  runtime: 'edge',
-  unstable_allowDynamic: [
-    '**/node_modules/lodash/**',
-  ],
-};
-
 export async function GET() {
   console.log('Database test endpoint called');
   
@@ -26,8 +18,8 @@ export async function GET() {
     console.log(`Database query successful. Query took ${endTime - startTime}ms`);
     console.log(`User count: ${userCount}`);
     
-    // Return success response
-    return NextResponse.json({
+    // Set headers to make this endpoint publicly accessible
+    const response = NextResponse.json({
       status: 'success',
       message: 'Successfully connected to Supabase database',
       userCount,
@@ -38,16 +30,30 @@ export async function GET() {
         timestamp: new Date().toISOString()
       }
     });
+    
+    // Add headers to disable authentication
+    response.headers.set('Cache-Control', 'no-store');
+    response.headers.set('Vercel-CDN-Cache-Control', 'no-store');
+    response.headers.set('X-Vercel-Protection-Bypass', 'true');
+    
+    return response;
   } catch (error) {
     console.error('Database test error:', error);
     
     // Return detailed error for debugging
-    return NextResponse.json({
+    const errorResponse = NextResponse.json({
       status: 'error',
       message: 'Failed to connect to database',
       error: error instanceof Error ? error.message : 'Unknown error',
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV
     }, { status: 500 });
+    
+    // Add headers to disable authentication
+    errorResponse.headers.set('Cache-Control', 'no-store');
+    errorResponse.headers.set('Vercel-CDN-Cache-Control', 'no-store');
+    errorResponse.headers.set('X-Vercel-Protection-Bypass', 'true');
+    
+    return errorResponse;
   }
 } 
