@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import * as crypto from 'crypto';
-import prisma from '@/lib/db/prisma';
+import { Pool } from 'pg';
+
+export const runtime = "nodejs";
 
 // Simple hash function for testing only
 function simpleHash(password: string): string {
@@ -11,25 +13,57 @@ export async function POST(request: Request) {
   console.log('Registration test endpoint called');
   
   try {
-    // Log diagnostic info
-    const dbUrl = process.env.POSTGRES_PRISMA_URL || process.env.DATABASE_URL || 'Not set';
-    const maskedUrl = dbUrl.replace(/\/\/.*?@/, '//****:****@');
-    console.log('Environment:', process.env.NODE_ENV);
-    console.log('Using database URL:', maskedUrl);
-    
-    // Test database connection first
-    try {
-      const startTime = Date.now();
-      const userCount = await prisma.user.count();
-      const endTime = Date.now();
-      console.log(`Database connection test: SUCCESS. Query took ${endTime - startTime}ms`);
-      console.log(`Current user count: ${userCount}`);
-    } catch (dbError) {
-      console.error('Database connection test: FAILED', dbError);
+    // Get all possible database URLs
+    const possibleUrls = [
+      process.env.POSTGRES_PRISMA_URL,
+      process.env.POSTGRES_URL,
+      process.env.DATABASE_URL,
+      process.env.DIRECT_DATABASE_URL,
+    ].filter((url): url is string => Boolean(url));
+
+    // Log available URLs (masked for security)
+    console.log('Available database URLs:', possibleUrls.map(url => {
+      try {
+        return url.replace(/\/\/.*?@/, '//****:****@');
+      } catch (e) {
+        return 'Invalid URL format';
+      }
+    }));
+
+    // Try each connection URL until one works
+    let pool = null;
+    let lastError: Error | null = null;
+    let connected = false;
+
+    for (const url of possibleUrls) {
+      try {
+        console.log(`Trying connection with URL: ${url.replace(/\/\/.*?@/, '//****:****@')}`);
+        pool = new Pool({ connectionString: url });
+        
+        // Test the connection with a simple query
+        const startTime = Date.now();
+        const result = await pool.query('SELECT 1 as test');
+        const endTime = Date.now();
+        
+        console.log(`Database connection successful with URL starting with ${url.substring(0, 10)}... Query took ${endTime - startTime}ms`);
+        connected = true;
+        break; // Connection successful, exit the loop
+      } catch (error) {
+        console.error(`Failed to connect with URL starting with ${url.substring(0, 10)}...`, error);
+        lastError = error instanceof Error ? error : new Error('Unknown error');
+        
+        // Close the pool if it was created
+        if (pool) await pool.end().catch(console.error);
+        pool = null;
+      }
+    }
+
+    if (!connected || !pool) {
+      console.error('All database connection attempts failed');
       return NextResponse.json({
         status: 'error',
         message: 'Database connection failed',
-        error: dbError instanceof Error ? dbError.message : 'Unknown database error',
+        error: lastError?.message || 'Unknown database error',
         env: process.env.NODE_ENV,
         timestamp: new Date().toISOString()
       }, { status: 500 });
@@ -39,6 +73,7 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => null);
     
     if (!body) {
+      await pool.end().catch(console.error);
       return NextResponse.json({
         status: 'error',
         message: 'Invalid request body'
@@ -49,6 +84,7 @@ export async function POST(request: Request) {
     
     // Validate request
     if (!email || !password) {
+      await pool.end().catch(console.error);
       return NextResponse.json({
         status: 'error',
         message: 'Email and password are required'
@@ -56,11 +92,13 @@ export async function POST(request: Request) {
     }
     
     // Check if user exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email }
-    });
+    const checkUserResult = await pool.query(
+      'SELECT id FROM "User" WHERE email = $1',
+      [email]
+    );
     
-    if (existingUser) {
+    if (checkUserResult.rows.length > 0) {
+      await pool.end().catch(console.error);
       return NextResponse.json({
         status: 'error',
         message: 'User already exists'
@@ -69,33 +107,33 @@ export async function POST(request: Request) {
     
     // Create user
     const hashedPassword = simpleHash(password);
+    const displayName = name || email.split('@')[0];
     
-    const user = await prisma.user.create({
-      data: {
-        name: name || email.split('@')[0],
+    const createUserResult = await pool.query(
+      'INSERT INTO "User" (id, name, email, password, "createdAt", "updatedAt") VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, name, email, "createdAt", "updatedAt"',
+      [
+        crypto.randomUUID(), // Generate a UUID for id
+        displayName,
         email,
-        password: hashedPassword,
-      }
-    });
+        hashedPassword,
+        new Date(),
+        new Date()
+      ]
+    );
+    
+    const user = createUserResult.rows[0];
+    
+    // Close the pool
+    await pool.end().catch(console.error);
     
     // Return successful response
-    const { password: _, ...userWithoutPassword } = user;
-    
     return NextResponse.json({
       status: 'success',
       message: 'User registered successfully in test mode',
-      user: userWithoutPassword
+      user
     });
   } catch (error) {
     console.error('Registration test error:', error);
-    
-    // Check for specific database errors
-    if (error instanceof Error && error.message.includes('Unique constraint')) {
-      return NextResponse.json({
-        status: 'error',
-        message: 'User already exists (caught in error handler)'
-      }, { status: 409 });
-    }
     
     return NextResponse.json({
       status: 'error',
