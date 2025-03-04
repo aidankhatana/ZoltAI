@@ -8,6 +8,8 @@ const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key-for-dev';
 export async function POST(request: Request) {
   try {
     console.log('Login process started');
+    console.log('Environment:', process.env.NODE_ENV);
+    console.log('JWT_SECRET starts with:', JWT_SECRET.substring(0, 10) + '...');
     
     // Parse request body
     let email, password;
@@ -95,6 +97,7 @@ export async function POST(request: Request) {
         { expiresIn: '7d' }
       );
       console.log('JWT token generated successfully');
+      console.log('Token starts with:', token.substring(0, 10) + '...');
     } catch (jwtError) {
       console.error('JWT signing error:', jwtError);
       return NextResponse.json(
