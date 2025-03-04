@@ -1,24 +1,37 @@
-import { PrismaClient } from '@prisma/client';
 import React from 'react';
 
-// This ensures the page is generated at build time
-export const dynamic = 'force-static';
+// This ensures the page is generated at request time, not build time
+export const dynamic = 'force-dynamic';
 
 export default async function DbTestPage() {
   let message = '';
   let error: any = null;
   let count = 0;
+  let queryTime = 0;
+  let timestamp = '';
+  let environment = '';
   
   try {
-    console.log('Connecting to database...');
-    const prisma = new PrismaClient();
+    // Fetch from our working API endpoint
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL || ''}/api/public-db-test`, {
+      cache: 'no-store',
+    });
     
-    // Try to get a count of users
-    count = await prisma.user.count();
-    message = 'Successfully connected to database';
+    if (!response.ok) {
+      throw new Error(`API responded with status: ${response.status}`);
+    }
     
-    // Close the connection
-    await prisma.$disconnect();
+    const data = await response.json();
+    
+    if (data.status === 'success') {
+      message = data.message;
+      count = data.userCount;
+      queryTime = data.queryTime;
+      timestamp = data.timestamp;
+      environment = data.environment;
+    } else {
+      throw new Error(data.message || 'Unknown error occurred');
+    }
   } catch (e) {
     error = e;
     message = 'Failed to connect to database';
@@ -32,14 +45,17 @@ export default async function DbTestPage() {
         <p className="font-semibold">Status: <span className={error ? "text-red-500" : "text-green-500"}>{message}</span></p>
       </div>
       {!error && (
-        <div className="p-4 bg-gray-100 rounded">
+        <div className="p-4 bg-gray-100 rounded space-y-2">
           <p>User count: {count}</p>
+          <p>Query time: {queryTime}ms</p>
+          <p>Timestamp: {timestamp}</p>
+          <p>Environment: {environment}</p>
         </div>
       )}
       {error && (
         <div className="p-4 bg-red-100 rounded">
           <p className="font-bold">Error:</p>
-          <pre className="whitespace-pre-wrap">{JSON.stringify(error, null, 2)}</pre>
+          <pre className="whitespace-pre-wrap">{error instanceof Error ? error.message : JSON.stringify(error, null, 2)}</pre>
         </div>
       )}
     </div>
