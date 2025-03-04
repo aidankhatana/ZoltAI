@@ -41,23 +41,27 @@ export async function GET() {
           }
         });
         
-        // Test the connection with a simple query
+        // First test with a simple query
+        await pool.query('SELECT 1 as test');
+        
+        // Now try to query the User table
         const startTime = Date.now();
-        const result = await pool.query('SELECT 1 as test');
+        const result = await pool.query('SELECT COUNT(*) FROM "User"');
         const endTime = Date.now();
         
         // Close the connection
         await pool.end();
         
+        const userCount = parseInt(result.rows[0].count, 10);
         console.log(`Database query successful. Query took ${endTime - startTime}ms`);
-        console.log(`Test result:`, result.rows[0]);
+        console.log(`User count: ${userCount}`);
         
         // If we get here, the connection was successful
         // Return success response with appropriate headers
         const response = NextResponse.json({
           status: 'success',
           message: 'Successfully connected to database',
-          testResult: result.rows[0],
+          userCount,
           queryTimeMs: endTime - startTime,
           timestamp: new Date().toISOString(),
           environment: process.env.NODE_ENV
