@@ -1,127 +1,106 @@
 import { NextResponse } from 'next/server';
-import crypto from 'crypto';
+import * as crypto from 'crypto';
 import prisma from '@/lib/db/prisma';
 
-// Simple hash function that doesn't use bcrypt
+// Simple hash function for testing only
 function simpleHash(password: string): string {
   return crypto.createHash('sha256').update(password).digest('hex');
 }
 
 export async function POST(request: Request) {
+  console.log('Registration test endpoint called');
+  
   try {
-    console.log('Test registration process started');
+    // Log diagnostic info
+    const dbUrl = process.env.POSTGRES_PRISMA_URL || process.env.DATABASE_URL || 'Not set';
+    const maskedUrl = dbUrl.replace(/\/\/.*?@/, '//****:****@');
+    console.log('Environment:', process.env.NODE_ENV);
+    console.log('Using database URL:', maskedUrl);
+    
+    // Test database connection first
+    try {
+      const startTime = Date.now();
+      const userCount = await prisma.user.count();
+      const endTime = Date.now();
+      console.log(`Database connection test: SUCCESS. Query took ${endTime - startTime}ms`);
+      console.log(`Current user count: ${userCount}`);
+    } catch (dbError) {
+      console.error('Database connection test: FAILED', dbError);
+      return NextResponse.json({
+        status: 'error',
+        message: 'Database connection failed',
+        error: dbError instanceof Error ? dbError.message : 'Unknown database error',
+        env: process.env.NODE_ENV,
+        timestamp: new Date().toISOString()
+      }, { status: 500 });
+    }
     
     // Parse request body
-    let name, email, password;
-    try {
-      const body = await request.json();
-      name = body.name;
-      email = body.email;
-      password = body.password;
-      console.log('Parsed registration data:', { 
-        name, 
-        emailProvided: !!email, 
-        passwordProvided: !!password 
-      });
-    } catch (parseError) {
-      console.error('Failed to parse request JSON:', parseError);
-      return NextResponse.json(
-        { error: 'Invalid request format' },
-        { status: 400 }
-      );
-    }
-
-    // Validate input
-    if (!email || !password) {
-      console.log('Validation failed: Missing email or password');
-      return NextResponse.json(
-        { error: 'Email and password are required' },
-        { status: 400 }
-      );
-    }
-
-    // Check if user already exists
-    console.log('Checking if user exists:', email);
-    let existingUser;
-    try {
-      existingUser = await prisma.user.findUnique({
-        where: { email },
-      });
-      console.log('User exists check result:', !!existingUser);
-    } catch (dbError: any) {
-      console.error('Database error during user lookup:', {
-        message: dbError.message,
-        code: dbError.code
-      });
-      return NextResponse.json(
-        { error: 'Database error during registration' },
-        { status: 500 }
-      );
-    }
-
-    if (existingUser) {
-      console.log('User already exists:', email);
-      return NextResponse.json(
-        { error: 'User with this email already exists' },
-        { status: 409 }
-      );
-    }
-
-    // Hash password with simple method
-    console.log('Hashing password with simple method');
-    const hashedPassword = simpleHash(password);
-    console.log('Password hashed successfully');
-
-    // Create user
-    console.log('Creating user in database');
-    let user;
-    try {
-      user = await prisma.user.create({
-        data: {
-          name,
-          email,
-          password: hashedPassword,
-        },
-      });
-      console.log('User created successfully:', user.id);
-    } catch (createError: any) {
-      console.error('User creation error:', {
-        message: createError.message,
-        code: createError.code
-      });
-      return NextResponse.json(
-        { error: 'Failed to create user account' },
-        { status: 500 }
-      );
-    }
-
-    // Return user without password
-    const { password: _, ...userWithoutPassword } = user;
+    const body = await request.json().catch(() => null);
     
-    return NextResponse.json(
-      { 
-        message: 'User registered successfully (TEST MODE)',
-        user: userWithoutPassword,
-        note: "This is a test endpoint that uses simple password hashing"
-      },
-      { status: 201 }
-    );
-  } catch (error: any) {
-    console.error('Registration test error details:', {
-      message: error.message,
-      stack: error.stack,
-      name: error.name,
-      code: error.code
+    if (!body) {
+      return NextResponse.json({
+        status: 'error',
+        message: 'Invalid request body'
+      }, { status: 400 });
+    }
+    
+    const { name, email, password } = body;
+    
+    // Validate request
+    if (!email || !password) {
+      return NextResponse.json({
+        status: 'error',
+        message: 'Email and password are required'
+      }, { status: 400 });
+    }
+    
+    // Check if user exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email }
     });
     
-    return NextResponse.json(
-      { 
-        error: 'Something went wrong during test registration',
-        details: process.env.NODE_ENV === 'production' 
-          ? 'See server logs for details' 
-          : error.message
-      },
-      { status: 500 }
-    );
+    if (existingUser) {
+      return NextResponse.json({
+        status: 'error',
+        message: 'User already exists'
+      }, { status: 409 });
+    }
+    
+    // Create user
+    const hashedPassword = simpleHash(password);
+    
+    const user = await prisma.user.create({
+      data: {
+        name: name || email.split('@')[0],
+        email,
+        password: hashedPassword,
+      }
+    });
+    
+    // Return successful response
+    const { password: _, ...userWithoutPassword } = user;
+    
+    return NextResponse.json({
+      status: 'success',
+      message: 'User registered successfully in test mode',
+      user: userWithoutPassword
+    });
+  } catch (error) {
+    console.error('Registration test error:', error);
+    
+    // Check for specific database errors
+    if (error instanceof Error && error.message.includes('Unique constraint')) {
+      return NextResponse.json({
+        status: 'error',
+        message: 'User already exists (caught in error handler)'
+      }, { status: 409 });
+    }
+    
+    return NextResponse.json({
+      status: 'error',
+      message: 'Registration failed',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 } 
