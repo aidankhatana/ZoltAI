@@ -29,26 +29,31 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 66, 45, 24;
-    --background-end-rgb: 33, 22, 12;
-    --primary: 251, 146, 60; /* sunset-400 */
-    --primary-light: 254, 215, 170; /* sunset-200 */
-    --primary-dark: 239, 108, 0; /* sunset-600 */
+    --background-start-rgb: 23, 36, 45;
+    --background-end-rgb: 15, 23, 30;
+    --primary: 56, 189, 248; /* sky-400 */
+    --primary-light: 186, 230, 253; /* sky-200 */
+    --primary-dark: 2, 132, 199; /* sky-600 */
   }
   
   .theme-sunset.dark {
     --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 66, 45, 24;
-    --background-end-rgb: 33, 22, 12;
-    --primary: 251, 146, 60; /* sunset-400 */
-    --primary-light: 254, 215, 170; /* sunset-200 */
-    --primary-dark: 239, 108, 0; /* sunset-600 */
+    --background-start-rgb: 23, 36, 45;
+    --background-end-rgb: 15, 23, 30;
+    --primary: 56, 189, 248; /* sky-400 */
+    --primary-light: 186, 230, 253; /* sky-200 */
+    --primary-dark: 2, 132, 199; /* sky-600 */
   }
   
   .theme-sunrise.dark {
     --foreground-rgb: 255, 255, 255;
     --background-start-rgb: 1, 87, 155;
     --background-end-rgb: 0, 29, 51;
+  }
+  
+  /* Force all form elements to have black text in dark mode */
+  input, textarea, select, .input, [type="text"], [type="email"], [type="password"], [type="number"], [type="search"] {
+    color: #000 !important;
   }
 }
 
@@ -103,27 +108,32 @@ body {
 
 @layer components {
   .btn-primary {
-    @apply bg-sunset-600 hover:bg-sunset-700 dark:bg-sunset-500 dark:hover:bg-sunset-600 text-white py-2 px-4 rounded-lg font-medium transition-colors;
+    @apply bg-sunset-600 hover:bg-sunset-700 dark:bg-sky-500 dark:hover:bg-sky-600 text-white py-2 px-4 rounded-lg font-medium transition-colors;
   }
   
   .btn-secondary {
-    @apply bg-white hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 text-sunset-600 dark:text-sunset-400 border border-sunset-200 dark:border-sunset-800 py-2 px-4 rounded-lg font-medium transition-colors;
+    @apply bg-white hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 text-sunset-600 dark:text-sky-400 border border-sunset-200 dark:border-sky-800 py-2 px-4 rounded-lg font-medium transition-colors;
   }
   
   .card {
-    @apply bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-sunset-100 dark:border-sunset-900;
+    @apply bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-sunset-100 dark:border-sky-900;
   }
   
   .input {
-    @apply mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm text-gray-900 dark:text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition duration-200 ease-in-out;
+    @apply mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm text-gray-900 dark:text-black focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition duration-200 ease-in-out;
+  }
+  
+  /* Text input styles for consistent text color */
+  input, textarea, select {
+    @apply text-black;
   }
   
   .roadmap-card {
-    @apply bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden border border-sunset-100 dark:border-sunset-900 hover:shadow-lg transition duration-200;
+    @apply bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden border border-sunset-100 dark:border-sky-900 hover:shadow-lg transition duration-200;
   }
   
   .theme-toggle {
-    @apply p-2 rounded-full bg-sunset-100 dark:bg-sunset-800 text-sunset-800 dark:text-sunset-100 hover:bg-sunset-200 dark:hover:bg-sunset-700 transition duration-200;
+    @apply p-2 rounded-full bg-sunset-100 dark:bg-sky-800 text-sunset-800 dark:text-sky-100 hover:bg-sunset-200 dark:hover:bg-sky-700 transition duration-200;
   }
   
   .bg-gradient-sunset {
