@@ -14,7 +14,7 @@ const Hero = () => {
   };
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-r from-orange-500 to-amber-500 dark:from-orange-800 dark:to-amber-800 py-20">
+    <section className="relative overflow-hidden bg-gradient-to-r from-orange-500 to-amber-500 dark:bg-slate-900 py-20">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <motion.div
@@ -64,7 +64,7 @@ const Hero = () => {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="relative hidden md:block"
           >
-            <div className="bg-white/90 dark:bg-gray-800/90 rounded-xl shadow-xl p-6 md:p-8 backdrop-blur-sm">
+            <div className="bg-white/90 dark:bg-slate-900/90 rounded-xl shadow-xl p-6 md:p-8 backdrop-blur-sm">
               <div className="flex items-center mb-6">
                 <div className="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
                 <div className="w-3 h-3 rounded-full bg-yellow-500 mr-2"></div>

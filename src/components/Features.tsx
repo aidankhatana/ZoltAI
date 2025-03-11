@@ -63,7 +63,7 @@ const Features = () => {
   ];
 
   return (
-    <section className="py-20 bg-white dark:bg-gray-900">
+    <section className="py-20 bg-white dark:bg-slate-900">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <motion.h2
@@ -94,7 +94,7 @@ const Features = () => {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
               viewport={{ once: true }}
-              className="bg-sunset-50 dark:bg-gray-800 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow"
+              className="bg-sunset-50 dark:bg-slate-800 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow"
             >
               <div className="inline-block p-3 bg-sunset-500/10 rounded-lg text-sunset-600 dark:text-sunset-400 mb-4">
                 {feature.icon}

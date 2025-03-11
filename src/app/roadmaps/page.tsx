@@ -100,7 +100,7 @@ export default function RoadmapsPage() {
     <div className="min-h-screen flex flex-col theme-sunset">
       <main className="flex-grow">
         {/* Hero Section */}
-        <section className="py-20 bg-gradient-sunset dark:from-sunset-900 dark:to-sunset-800">
+        <section className="py-20 bg-gradient-sunset">
           <div className="container mx-auto px-4 text-center">
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
@@ -134,7 +134,7 @@ export default function RoadmapsPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
-                <button type="submit" className="btn-primary md:px-8 bg-sunset-600 hover:bg-sunset-700">
+                <button type="submit" className="btn-primary md:px-8">
                   Search
                 </button>
               </div>
@@ -143,7 +143,7 @@ export default function RoadmapsPage() {
         </section>
 
         {/* Categories and Roadmaps Section */}
-        <section className="py-16 bg-white dark:bg-gray-900">
+        <section className="py-16 bg-white dark:bg-slate-900">
           <div className="container mx-auto px-4">
             {/* Categories Filter */}
             <div className="flex flex-wrap gap-3 justify-center mb-12">
@@ -154,7 +154,7 @@ export default function RoadmapsPage() {
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                     selectedCategory === category.id
                       ? 'bg-sunset-500 text-white'
-                      : 'bg-sunset-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-sunset-100 dark:hover:bg-gray-700'
+                      : 'bg-sunset-50 dark:bg-slate-800 text-gray-700 dark:text-gray-300 hover:bg-sunset-100 dark:hover:bg-slate-700'
                   }`}
                 >
                   {category.name}
@@ -200,7 +200,7 @@ export default function RoadmapsPage() {
                       </span>
                       <Link 
                         href={`/assessment?topic=${encodeURIComponent(roadmap.title)}`}
-                        className="btn-primary text-sm py-1 px-4 bg-sunset-600 hover:bg-sunset-700"
+                        className="btn-primary text-sm py-1 px-4"
                       >
                         View Roadmap
                       </Link>
@@ -224,7 +224,7 @@ export default function RoadmapsPage() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
               viewport={{ once: true }}
-              className="mt-16 bg-sunset-50 dark:bg-gray-800 p-8 rounded-xl text-center"
+              className="mt-16 bg-sunset-50 dark:bg-slate-800 p-8 rounded-xl text-center"
             >
               <h2 className="text-2xl font-bold text-sunset-700 dark:text-sunset-300 mb-4">
                 Don't see what you're looking for?
@@ -244,7 +244,7 @@ export default function RoadmapsPage() {
                   />
                   <button 
                     type="submit" 
-                    className="btn-primary md:px-8 bg-sunset-600 hover:bg-sunset-700"
+                    className="btn-primary md:px-8"
                   >
                     Create Custom Roadmap
                   </button>

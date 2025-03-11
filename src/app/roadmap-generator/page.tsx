@@ -78,26 +78,26 @@ export default function RoadmapGenerator() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-orange-500 to-amber-500 dark:from-orange-800 dark:to-amber-800">
+    <div className="min-h-screen bg-gradient-to-r from-orange-500 to-amber-500 dark:bg-slate-900">
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold mb-6 text-white text-center">
             Create Your Custom Learning Roadmap
           </h1>
           
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-8">
+          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl p-8">
             <form onSubmit={handleSubmit}>
               <div className="mb-6">
                 <label htmlFor="topic" className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                   What do you want to learn?
                 </label>
                 <input
-                  type="text"
                   id="topic"
+                  type="text"
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
                   placeholder="Enter a topic (e.g., Knitting, Algebra, Web Development)"
-                  className="w-full p-4 rounded-lg border border-gray-300 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                  className="w-full p-4 rounded-lg border border-gray-300 bg-white dark:bg-slate-800 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-sunset-500 focus:border-sunset-500 text-base"
                   required
                 />
               </div>
@@ -114,7 +114,7 @@ export default function RoadmapGenerator() {
                       className={`px-4 py-2 rounded-full text-sm font-medium ${
                         selectedPopularTopic === topic
                           ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
+                          : 'bg-gray-100 text-gray-800 dark:bg-slate-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-700'
                       }`}
                       onClick={() => selectPopularTopic(topic)}
                     >
@@ -135,8 +135,8 @@ export default function RoadmapGenerator() {
                       type="button"
                       className={`py-3 px-4 rounded-lg text-center text-sm font-medium transition-colors ${
                         skillLevel === level.id
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
+                          ? 'bg-sunset-600 text-white'
+                          : 'bg-gray-100 text-gray-800 dark:bg-slate-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-700'
                       }`}
                       onClick={() => setSkillLevel(level.id)}
                     >
@@ -155,7 +155,7 @@ export default function RoadmapGenerator() {
                   value={additionalInfo}
                   onChange={(e) => setAdditionalInfo(e.target.value)}
                   placeholder="Any specific areas or technologies you're interested in? Or specific goals you want to achieve?"
-                  className="w-full p-4 rounded-lg border border-gray-300 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                  className="w-full p-4 rounded-lg border border-gray-300 bg-white dark:bg-slate-800 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-sunset-500 focus:border-sunset-500 text-base"
                   rows={5}
                 ></textarea>
               </div>
@@ -167,7 +167,7 @@ export default function RoadmapGenerator() {
                     id="isPublic"
                     checked={isPublic}
                     onChange={(e) => setIsPublic(e.target.checked)}
-                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                    className="w-4 h-4 text-sunset-600 bg-gray-100 border-gray-300 rounded focus:ring-sunset-500 dark:focus:ring-sunset-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-slate-800 dark:border-gray-600"
                   />
                   <label htmlFor="isPublic" className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                     Make this roadmap public so others can learn from it
@@ -187,7 +187,7 @@ export default function RoadmapGenerator() {
                 className={`w-full py-4 px-5 text-center font-medium rounded-lg text-white ${
                   isGenerating || !topic.trim()
                     ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300'
+                    : 'bg-sunset-600 hover:bg-sunset-700'
                 }`}
               >
                 {isGenerating ? (

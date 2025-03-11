@@ -104,8 +104,8 @@ export default function RoadmapPage({ params }: RoadmapPageProps) {
   // Show loading UI until content is ready
   if (pageLoading || contextLoading || !contentReady) {
     return (
-      <div className="min-h-screen bg-gradient-to-r from-amber-500 to-orange-600 dark:from-amber-700 dark:to-orange-800 flex items-center justify-center">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-8 max-w-md w-full">
+      <div className="min-h-screen bg-gradient-to-r from-amber-500 to-orange-600 dark:bg-slate-900 flex items-center justify-center">
+        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl p-8 max-w-md w-full">
           <div className="flex flex-col items-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600"></div>
             <p className="mt-4 text-gray-600 dark:text-gray-300">Loading your personalized learning journey...</p>
@@ -121,8 +121,8 @@ export default function RoadmapPage({ params }: RoadmapPageProps) {
   // Show error UI if there's an error
   if (error || loadingError) {
     return (
-      <div className="min-h-screen bg-gradient-to-r from-amber-500 to-orange-600 dark:from-amber-700 dark:to-orange-800 flex items-center justify-center p-4">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-8 max-w-md w-full">
+      <div className="min-h-screen bg-gradient-to-r from-amber-500 to-orange-600 dark:bg-slate-900 flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl p-8 max-w-md w-full">
           <h2 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-3">Error Loading Roadmap</h2>
           <p className="text-gray-700 dark:text-gray-300 mb-4">{error || loadingError}</p>
           <div className="flex space-x-4">
@@ -146,8 +146,8 @@ export default function RoadmapPage({ params }: RoadmapPageProps) {
 
   if (!currentRoadmap) {
     return (
-      <div className="min-h-screen bg-gradient-to-r from-amber-500 to-orange-600 dark:from-amber-700 dark:to-orange-800 flex items-center justify-center p-4">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-8 max-w-md w-full">
+      <div className="min-h-screen bg-gradient-to-r from-amber-500 to-orange-600 dark:bg-slate-900 flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl p-8 max-w-md w-full">
           <h2 className="text-2xl font-bold text-amber-600 dark:text-amber-400 mb-3">Roadmap Not Found</h2>
           <p className="text-gray-700 dark:text-gray-300 mb-4">
             The roadmap you're looking for doesn't exist or you don't have permission to view it.
@@ -215,11 +215,11 @@ export default function RoadmapPage({ params }: RoadmapPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-amber-500 to-orange-600 dark:from-amber-700 dark:to-orange-800">
-      <div className="container mx-auto px-4 py-12">
+    <div className="min-h-screen bg-gradient-to-r from-amber-500 to-orange-600 dark:bg-slate-900 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="container mx-auto">
         <div className="max-w-4xl mx-auto">
           {/* Roadmap Header */}
-          <div className="bg-white dark:bg-gray-800 rounded-t-xl shadow-xl overflow-hidden">
+          <div className="bg-white dark:bg-slate-900 rounded-t-xl shadow-xl overflow-hidden">
             <div className="bg-gradient-to-r from-amber-600 to-orange-600 dark:from-amber-700 dark:to-orange-700 px-6 py-8 text-white">
               <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
                 <div>
@@ -239,12 +239,12 @@ export default function RoadmapPage({ params }: RoadmapPageProps) {
                 </div>
                 
                 {user && progressData && (
-                  <div className="bg-white/10 dark:bg-black/20 p-4 rounded-lg backdrop-blur-sm w-full md:w-64">
+                  <div className="bg-white/10 dark:bg-slate-900/20 p-4 rounded-lg backdrop-blur-sm w-full md:w-64">
                     <div className="flex justify-between items-center mb-2">
                       <p className="text-sm font-medium text-amber-100">Your Progress</p>
                       <p className="text-sm font-bold text-white">{overallProgress}%</p>
                     </div>
-                    <div className="w-full h-3 bg-black/20 rounded-full overflow-hidden">
+                    <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
                       <div 
                         className="h-full rounded-full bg-gradient-to-r from-amber-400 to-amber-300 transition-all duration-500 ease-out" 
                         style={{ width: `${overallProgress}%` }}
@@ -265,7 +265,7 @@ export default function RoadmapPage({ params }: RoadmapPageProps) {
                   Back to Roadmaps
                 </Link>
                 
-                <div className="bg-white/20 dark:bg-gray-800/30 rounded-lg px-4 py-2 backdrop-blur-sm">
+                <div className="bg-white/20 dark:bg-slate-900/30 rounded-lg px-4 py-2 backdrop-blur-sm">
                   <p className="text-white text-sm">
                     <span className="font-bold">{completedSteps}</span> of <span className="font-bold">{totalSteps}</span> steps completed
                   </p>

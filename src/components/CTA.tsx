@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 
 export default function CTA() {
   return (
-    <section className="py-20 bg-sunset-50 dark:bg-gray-800">
+    <section className="py-20 bg-sunset-50 dark:bg-slate-900">
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row items-center gap-12">
           <motion.div 

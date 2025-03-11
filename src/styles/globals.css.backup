@@ -29,29 +29,26 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 15, 23, 42; /* dark navy - tailwind slate-900 */
-    --background-end-rgb: 15, 23, 42; /* dark navy - tailwind slate-900 */
-    --primary: 239, 108, 0; /* sunset-600 - same as light mode */
-    --primary-light: 251, 146, 60; /* sunset-400 - same as light mode */
-    --primary-dark: 214, 88, 0; /* sunset-700 - same as light mode */
+    --background-start-rgb: 23, 36, 45;
+    --background-end-rgb: 15, 23, 30;
+    --primary: 56, 189, 248; /* sky-400 */
+    --primary-light: 186, 230, 253; /* sky-200 */
+    --primary-dark: 2, 132, 199; /* sky-600 */
   }
   
   .theme-sunset.dark {
     --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 15, 23, 42; /* dark navy - tailwind slate-900 */
-    --background-end-rgb: 15, 23, 42; /* dark navy - tailwind slate-900 */
-    --primary: 239, 108, 0; /* sunset-600 - same as light mode */
-    --primary-light: 251, 146, 60; /* sunset-400 - same as light mode */
-    --primary-dark: 214, 88, 0; /* sunset-700 - same as light mode */
+    --background-start-rgb: 23, 36, 45;
+    --background-end-rgb: 15, 23, 30;
+    --primary: 56, 189, 248; /* sky-400 */
+    --primary-light: 186, 230, 253; /* sky-200 */
+    --primary-dark: 2, 132, 199; /* sky-600 */
   }
   
   .theme-sunrise.dark {
     --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 15, 23, 42; /* dark navy - tailwind slate-900 */
-    --background-end-rgb: 15, 23, 42; /* dark navy - tailwind slate-900 */
-    --primary: 239, 108, 0; /* sunset-600 - same as light mode */
-    --primary-light: 251, 146, 60; /* sunset-400 - same as light mode */
-    --primary-dark: 214, 88, 0; /* sunset-700 - same as light mode */
+    --background-start-rgb: 1, 87, 155;
+    --background-end-rgb: 0, 29, 51;
   }
   
   /* Force all form elements to have black text in dark mode */
@@ -111,19 +108,19 @@ body {
 
 @layer components {
   .btn-primary {
-    @apply bg-sunset-600 hover:bg-sunset-700 dark:bg-sunset-600 dark:hover:bg-sunset-700 text-white py-2 px-4 rounded-lg font-medium transition-colors;
+    @apply bg-sunset-600 hover:bg-sunset-700 dark:bg-sky-500 dark:hover:bg-sky-600 text-white py-2 px-4 rounded-lg font-medium transition-colors;
   }
   
   .btn-secondary {
-    @apply bg-white hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-sunset-600 dark:text-sunset-300 border border-sunset-200 dark:border-sunset-700 py-2 px-4 rounded-lg font-medium transition-colors;
+    @apply bg-white hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 text-sunset-600 dark:text-sky-400 border border-sunset-200 dark:border-sky-800 py-2 px-4 rounded-lg font-medium transition-colors;
   }
   
   .card {
-    @apply bg-white dark:bg-slate-900 rounded-lg shadow-md p-6 border border-sunset-100 dark:border-sunset-700;
+    @apply bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-sunset-100 dark:border-sky-900;
   }
   
   .input {
-    @apply mt-1 block w-full px-3 py-2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-sunset-700 rounded-md shadow-sm text-gray-900 dark:text-black focus:outline-none focus:border-sunset-500 focus:ring-1 focus:ring-sunset-500 transition duration-200 ease-in-out;
+    @apply mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm text-gray-900 dark:text-black focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition duration-200 ease-in-out;
   }
   
   /* Text input styles for consistent text color */
@@ -132,11 +129,11 @@ body {
   }
   
   .roadmap-card {
-    @apply bg-white dark:bg-slate-900 rounded-xl shadow-md overflow-hidden border border-sunset-100 dark:border-sunset-700 hover:shadow-lg transition duration-200;
+    @apply bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden border border-sunset-100 dark:border-sky-900 hover:shadow-lg transition duration-200;
   }
   
   .theme-toggle {
-    @apply p-2 rounded-full bg-sunset-100 dark:bg-slate-800 text-sunset-800 dark:text-sunset-300 hover:bg-sunset-200 dark:hover:bg-slate-700 transition duration-200;
+    @apply p-2 rounded-full bg-sunset-100 dark:bg-sky-800 text-sunset-800 dark:text-sky-100 hover:bg-sunset-200 dark:hover:bg-sky-700 transition duration-200;
   }
   
   .bg-gradient-sunset {

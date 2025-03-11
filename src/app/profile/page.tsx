@@ -144,10 +144,10 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-orange-500 to-amber-500 dark:from-orange-800 dark:to-amber-800">
+    <div className="min-h-screen bg-gradient-to-r from-orange-500 to-amber-500 dark:bg-slate-900">
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-6xl mx-auto">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl overflow-hidden">
+          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl overflow-hidden">
             {/* Profile Header */}
             <div className="p-8 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between">
