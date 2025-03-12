@@ -50,11 +50,15 @@ export async function GET() {
         };
         
         try {
+          // Handle SSL for Supabase
+          const isSupabase = url.includes('supabase');
+          
           const pool = new Pool({ 
             connectionString: url,
-            ssl: url.includes('supabase') ? {
-              rejectUnauthorized: false
-            } : undefined
+            // More permissive SSL settings to handle self-signed certificates
+            ssl: {
+              rejectUnauthorized: false // Allows self-signed certificates
+            }
           });
           
           const result = await pool.query('SELECT 1 as test');
