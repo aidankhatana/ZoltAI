@@ -1,6 +1,6 @@
 # ZoltAI - Personalized Learning Path Generator
 
-ZoltAI is an AI-powered platform that creates personalized learning paths based on users' learning goals and current skill levels. The application leverages advanced technologies to provide customized educational roadmaps for various subjects.
+ZoltAI is an AI-powered platform that creates personalized learning paths based on users' learning goals and current skill levels. The application currentely uses Gemini llm models to provide customized educational roadmaps for various subjects.
 
 ## Tech Stack
 
