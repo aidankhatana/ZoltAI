@@ -14,13 +14,19 @@ interface RoadmapPageProps {
 
 // Simple function to convert markdown to HTML if needed
 function markdownToHtml(content: string) {
-  return content
-    .replace(/^# (.*$)/gm, '<h1>$1</h1>')
-    .replace(/^## (.*$)/gm, '<h2>$1</h2>')
-    .replace(/^### (.*$)/gm, '<h3>$1</h3>')
-    .replace(/\*\*(.*)\*\*/gm, '<strong>$1</strong>')
-    .replace(/\*(.*)\*/gm, '<em>$1</em>')
-    .replace(/\n/gm, '<br />');
+  // First, let's add break tags for newlines
+  const withBreaks = content.replace(/\n/gm, '<br>');
+  
+  // Then wrap the whole content in a div with text coloring classes
+  const wrappedContent = `<div class="text-gray-800 dark:text-white">${withBreaks}</div>`;
+  
+  // Now apply the specific markdown replacements
+  return wrappedContent
+    .replace(/^# (.*$)/gm, '<h1 class="text-gray-900 dark:text-white text-xl font-bold mt-4 mb-2">$1</h1>')
+    .replace(/^## (.*$)/gm, '<h2 class="text-gray-900 dark:text-white text-lg font-bold mt-4 mb-2">$1</h2>')
+    .replace(/^### (.*$)/gm, '<h3 class="text-gray-900 dark:text-white text-md font-bold mt-3 mb-2">$1</h3>')
+    .replace(/\*\*(.*?)\*\*/gm, '<strong class="text-gray-900 dark:text-white font-bold">$1</strong>')
+    .replace(/\*(.*?)\*/gm, '<em class="text-gray-800 dark:text-white italic">$1</em>');
 }
 
 export default function RoadmapPage({ params }: RoadmapPageProps) {
@@ -104,7 +110,7 @@ export default function RoadmapPage({ params }: RoadmapPageProps) {
   // Show loading UI until content is ready
   if (pageLoading || contextLoading || !contentReady) {
     return (
-      <div className="min-h-screen bg-gradient-to-r from-amber-500 to-orange-600 dark:bg-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-r from-amber-500 to-orange-600 dark:bg-slate-900 dark:from-slate-900 dark:to-slate-900 flex items-center justify-center">
         <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl p-8 max-w-md w-full">
           <div className="flex flex-col items-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600"></div>
@@ -121,7 +127,7 @@ export default function RoadmapPage({ params }: RoadmapPageProps) {
   // Show error UI if there's an error
   if (error || loadingError) {
     return (
-      <div className="min-h-screen bg-gradient-to-r from-amber-500 to-orange-600 dark:bg-slate-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-r from-amber-500 to-orange-600 dark:bg-slate-900 dark:from-slate-900 dark:to-slate-900 flex items-center justify-center p-4">
         <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl p-8 max-w-md w-full">
           <h2 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-3">Error Loading Roadmap</h2>
           <p className="text-gray-700 dark:text-gray-300 mb-4">{error || loadingError}</p>
@@ -146,7 +152,7 @@ export default function RoadmapPage({ params }: RoadmapPageProps) {
 
   if (!currentRoadmap) {
     return (
-      <div className="min-h-screen bg-gradient-to-r from-amber-500 to-orange-600 dark:bg-slate-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-r from-amber-500 to-orange-600 dark:bg-slate-900 dark:from-slate-900 dark:to-slate-900 flex items-center justify-center p-4">
         <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl p-8 max-w-md w-full">
           <h2 className="text-2xl font-bold text-amber-600 dark:text-amber-400 mb-3">Roadmap Not Found</h2>
           <p className="text-gray-700 dark:text-gray-300 mb-4">
@@ -215,7 +221,7 @@ export default function RoadmapPage({ params }: RoadmapPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-amber-500 to-orange-600 dark:bg-slate-900 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-r from-amber-500 to-orange-600 dark:bg-slate-900 dark:from-slate-900 dark:to-slate-900 py-12 px-4 sm:px-6 lg:px-8">
       <div className="container mx-auto">
         <div className="max-w-4xl mx-auto">
           {/* Roadmap Header */}
@@ -276,7 +282,7 @@ export default function RoadmapPage({ params }: RoadmapPageProps) {
             {/* Two-Column Layout for Content */}
             <div className="flex flex-col md:flex-row">
               {/* Left Sidebar - Steps List */}
-              <div className="w-full md:w-1/3 p-6 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-850 overflow-y-auto">
+              <div className="w-full md:w-1/3 p-6 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 overflow-y-auto">
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Roadmap Steps</h2>
                 
                 <div className="space-y-2">
@@ -330,7 +336,7 @@ export default function RoadmapPage({ params }: RoadmapPageProps) {
                         
                         {isExpanded[step.id] && (
                           <div className="p-4 pt-0 border-t border-gray-100 dark:border-gray-700 space-y-3">
-                            <p className="text-sm text-gray-600 dark:text-gray-300">
+                            <p className="text-sm text-gray-600 dark:text-gray-200">
                               {step.description}
                             </p>
                             <div className="flex space-x-3">
@@ -346,7 +352,7 @@ export default function RoadmapPage({ params }: RoadmapPageProps) {
                                   onClick={() => markStepComplete(step.id, !completed)}
                                   className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
                                     completed 
-                                      ? 'text-gray-700 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700' 
+                                      ? 'text-gray-700 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600' 
                                       : 'text-green-700 bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/50'
                                   }`}
                                 >
@@ -378,18 +384,49 @@ export default function RoadmapPage({ params }: RoadmapPageProps) {
               </div>
               
               {/* Right Content Area - Step Details */}
-              <div className="w-full md:w-2/3 p-6 overflow-y-auto">
+              <div className="w-full md:w-2/3 p-6 overflow-y-auto bg-white dark:bg-slate-900 text-gray-900 dark:text-white">
                 {activeStepData ? (
-                  <div>
+                  <div className="text-gray-900 dark:text-white">
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
                       {activeStepData.title}
                     </h2>
                     
-                    <div className="prose dark:prose-invert max-w-none">
+                    <style jsx global>{`
+                      .step-content p, 
+                      .step-content li, 
+                      .step-content h1, 
+                      .step-content h2, 
+                      .step-content h3,
+                      .step-content h4,
+                      .step-content h5,
+                      .step-content h6,
+                      .step-content strong,
+                      .step-content em,
+                      .step-content span {
+                        color: black;
+                      }
+                      
+                      .dark .step-content p, 
+                      .dark .step-content li, 
+                      .dark .step-content h1, 
+                      .dark .step-content h2, 
+                      .dark .step-content h3,
+                      .dark .step-content h4,
+                      .dark .step-content h5,
+                      .dark .step-content h6,
+                      .dark .step-content strong,
+                      .dark .step-content em,
+                      .dark .step-content span {
+                        color: white;
+                      }
+                    `}</style>
+                    
+                    <div className="prose dark:prose-invert step-content prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-800 dark:prose-p:text-white prose-strong:text-gray-900 dark:prose-strong:text-white prose-em:text-gray-800 dark:prose-em:text-white prose-li:text-gray-800 dark:prose-li:text-white max-w-none text-gray-900 dark:text-white">
                       <div 
                         dangerouslySetInnerHTML={{ 
                           __html: markdownToHtml(activeStepData.content || '') 
                         }} 
+                        className="text-gray-900 dark:text-white"
                       />
                     </div>
                     
@@ -406,7 +443,7 @@ export default function RoadmapPage({ params }: RoadmapPageProps) {
                               href={resource.url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="block p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
+                              className="block p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                             >
                               <div className="flex items-start">
                                 <div className="flex-shrink-0 w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center mr-4">
@@ -449,7 +486,7 @@ export default function RoadmapPage({ params }: RoadmapPageProps) {
                     <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
                       Select a step to view its details
                     </h3>
-                    <p className="text-gray-600 dark:text-gray-300 max-w-md">
+                    <p className="text-gray-600 dark:text-white max-w-md">
                       Click on a step from the list on the left and expand it to view its content, 
                       resources, and track your progress along the way.
                     </p>
