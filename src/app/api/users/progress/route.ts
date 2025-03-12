@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/db/prisma';
+import pgClient from '@/lib/db/pg-client';
 import { verifyAuth } from '@/lib/auth';
 
 interface Step {
@@ -31,7 +31,7 @@ interface UserProgress {
 // Get user progress for all roadmaps or a specific roadmap
 export async function GET(request: NextRequest) {
   try {
-    const { userId, token } = await verifyAuth(request);
+    const { userId } = await verifyAuth(request);
     
     if (!userId) {
       return NextResponse.json(
@@ -42,109 +42,25 @@ export async function GET(request: NextRequest) {
     
     const url = new URL(request.url);
     const roadmapId = url.searchParams.get('roadmapId');
+    const stepId = url.searchParams.get('stepId');
     
-    // Query parameters for the database
-    const whereClause: any = {
-      userId
-    };
+    // Build the where clause
+    const where: any = { userId };
     
     if (roadmapId) {
-      whereClause.roadmapId = roadmapId;
+      where.roadmapId = roadmapId;
     }
     
-    // Get user progress
-    const userProgress = await prisma.userProgress.findMany({
-      where: whereClause,
-      include: {
-        step: {
-          select: {
-            id: true,
-            title: true,
-            order: true,
-            roadmapId: true
-          }
-        },
-        roadmap: {
-          select: {
-            id: true,
-            title: true,
-            topic: true,
-            difficulty: true
-          }
-        }
-      },
-      orderBy: {
-        completedAt: 'desc'
-      }
-    });
-    
-    // If a specific roadmap was requested, also get the steps that don't have progress
-    if (roadmapId) {
-      const roadmap = await prisma.roadmap.findUnique({
-        where: { id: roadmapId },
-        include: {
-          steps: {
-            orderBy: {
-              order: 'asc'
-            }
-          }
-        }
-      });
-      
-      if (!roadmap) {
-        return NextResponse.json(
-          { success: false, error: 'Roadmap not found' },
-          { status: 404 }
-        );
-      }
-      
-      // Create a map of existing progress entries
-      const progressMap = new Map(
-        userProgress.map((progress: UserProgress) => [progress.stepId, progress])
-      );
-      
-      // Create complete progress data including steps without progress
-      const completeProgress = roadmap.steps.map((step: Step) => {
-        const progress = progressMap.get(step.id);
-        
-        if (progress) {
-          return progress;
-        }
-        
-        // Return a default progress object for steps without progress
-        return {
-          id: null,
-          userId,
-          roadmapId,
-          stepId: step.id,
-          completed: false,
-          quizScore: null,
-          completedAt: null,
-          step: {
-            id: step.id,
-            title: step.title,
-            order: step.order,
-            roadmapId
-          },
-          roadmap: {
-            id: roadmapId,
-            title: roadmap.title,
-            topic: roadmap.topic,
-            difficulty: roadmap.difficulty
-          }
-        };
-      });
-      
-      return NextResponse.json({ 
-        success: true, 
-        progress: completeProgress,
-        roadmapTitle: roadmap.title
-      });
+    if (stepId) {
+      where.stepId = stepId;
     }
     
-    return NextResponse.json({ 
-      success: true, 
-      progress: userProgress 
+    // Get the user progress
+    const userProgress = await pgClient.userProgress.findMany(where);
+    
+    return NextResponse.json({
+      success: true,
+      progress: userProgress
     });
   } catch (error) {
     console.error('Error fetching user progress:', error);
@@ -158,7 +74,7 @@ export async function GET(request: NextRequest) {
 // Update user progress for a specific step
 export async function POST(request: NextRequest) {
   try {
-    const { userId, token } = await verifyAuth(request);
+    const { userId } = await verifyAuth(request);
     
     if (!userId) {
       return NextResponse.json(
@@ -167,7 +83,7 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const { roadmapId, stepId, completed, quizScore } = await request.json();
+    const { roadmapId, stepId, completed } = await request.json();
     
     if (!roadmapId || !stepId) {
       return NextResponse.json(
@@ -176,44 +92,50 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Check if user progress already exists
-    const existingProgress = await prisma.userProgress.findFirst({
-      where: {
-        userId,
-        roadmapId,
-        stepId
-      }
+    // Verify that the roadmap exists
+    const roadmap = await pgClient.roadmap.findUnique(roadmapId);
+    
+    if (!roadmap) {
+      return NextResponse.json(
+        { success: false, error: 'Roadmap not found' },
+        { status: 404 }
+      );
+    }
+    
+    // Check if there is existing progress
+    const existingProgress = await pgClient.userProgress.findFirst({
+      userId,
+      roadmapId,
+      stepId
     });
     
     let userProgress;
     
+    // Determine the completion status based on the input or existing state
+    const isCompleted = completed !== undefined ? completed : true;
+    
+    // Update or create progress record
     if (existingProgress) {
-      // Update existing progress
-      userProgress = await prisma.userProgress.update({
-        where: { id: existingProgress.id },
-        data: {
-          completed: completed !== undefined ? completed : existingProgress.completed,
-          quizScore: quizScore !== undefined ? quizScore : existingProgress.quizScore,
-          completedAt: completed ? new Date() : existingProgress.completedAt
+      userProgress = await pgClient.userProgress.update(
+        { id: existingProgress.id },
+        {
+          completed: isCompleted,
+          completedAt: isCompleted ? new Date() : existingProgress.completedAt
         }
-      });
+      );
     } else {
-      // Create new progress
-      userProgress = await prisma.userProgress.create({
-        data: {
-          userId,
-          roadmapId,
-          stepId,
-          completed: !!completed,
-          quizScore,
-          completedAt: completed ? new Date() : null
-        }
+      userProgress = await pgClient.userProgress.create({
+        userId,
+        roadmapId,
+        stepId,
+        completed: isCompleted,
+        completedAt: isCompleted ? new Date() : null
       });
     }
     
-    return NextResponse.json({ 
-      success: true, 
-      progress: userProgress 
+    return NextResponse.json({
+      success: true,
+      progress: userProgress
     });
   } catch (error) {
     console.error('Error updating user progress:', error);

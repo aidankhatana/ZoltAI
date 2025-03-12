@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/db/prisma';
+import pgClient from '@/lib/db/pg-client';
 import { verifyAuth } from '@/lib/auth';
 
 interface QuizQuestion {
   id: string;
   correctAnswer: string;
+  correctOption: number;
 }
 
 // Get a quiz by ID
@@ -16,23 +17,7 @@ export async function GET(
     const id = params.id;
     
     // Find the quiz
-    const quiz = await prisma.quiz.findUnique({
-      where: { id },
-      include: {
-        questions: {
-          orderBy: {
-            id: 'asc'
-          }
-        },
-        step: {
-          select: {
-            id: true,
-            title: true,
-            roadmapId: true
-          }
-        }
-      }
-    });
+    const quiz = await pgClient.quiz.findUnique(id, true);
     
     if (!quiz) {
       return NextResponse.json(
@@ -79,13 +64,7 @@ export async function POST(
     }
     
     // Get the quiz with questions and correct answers
-    const quiz = await prisma.quiz.findUnique({
-      where: { id: quizId },
-      include: {
-        questions: true,
-        step: true
-      }
-    });
+    const quiz = await pgClient.quiz.findUnique(quizId, true);
     
     if (!quiz) {
       return NextResponse.json(
@@ -100,7 +79,7 @@ export async function POST(
     
     // Create a map of question IDs to correct answers
     const questionMap = new Map(
-      quiz.questions.map((q) => [q.id, q.correctOption.toString()])
+      quiz.questions.map((q: QuizQuestion) => [q.id, q.correctOption.toString()])
     );
     
     // Check each answer against the correct answer
@@ -121,41 +100,29 @@ export async function POST(
     // Record the progress in UserProgress instead of quizAttempt
     if (quiz.step) {
       // Update the user's progress for this step
-      const progressKey = { 
-        userId_roadmapId_stepId: {
-          userId,
-          roadmapId: quiz.step.roadmapId,
-          stepId: quiz.step.id
-        }
-      };
-      
-      const existingProgress = await prisma.userProgress.findFirst({
-        where: {
-          userId,
-          roadmapId: quiz.step.roadmapId,
-          stepId: quiz.step.id
-        }
+      const existingProgress = await pgClient.userProgress.findFirst({
+        userId,
+        roadmapId: quiz.step.roadmapId,
+        stepId: quiz.step.id
       });
 
       if (existingProgress) {
-        await prisma.userProgress.update({
-          where: { id: existingProgress.id },
-          data: {
+        await pgClient.userProgress.update(
+          { id: existingProgress.id }, 
+          {
             quizScore: scorePercentage,
             completed: scorePercentage >= 70, 
             completedAt: scorePercentage >= 70 ? new Date() : existingProgress.completedAt
           }
-        });
+        );
       } else {
-        await prisma.userProgress.create({
-          data: {
-            userId,
-            stepId: quiz.step.id,
-            roadmapId: quiz.step.roadmapId,
-            quizScore: scorePercentage,
-            completed: scorePercentage >= 70,
-            completedAt: scorePercentage >= 70 ? new Date() : null
-          }
+        await pgClient.userProgress.create({
+          userId,
+          stepId: quiz.step.id,
+          roadmapId: quiz.step.roadmapId,
+          quizScore: scorePercentage,
+          completed: scorePercentage >= 70,
+          completedAt: scorePercentage >= 70 ? new Date() : null
         });
       }
     }

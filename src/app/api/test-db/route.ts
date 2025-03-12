@@ -1,59 +1,26 @@
-import { NextResponse } from 'next/server';
-import prisma from '@/lib/db/prisma';
+import { NextRequest, NextResponse } from 'next/server';
+import pgClient from '@/lib/db/pg-client';
 
-export async function GET() {
-  console.log('Database test endpoint called');
-  
+export async function GET(request: NextRequest) {
   try {
-    // Log connection info (sanitized)
-    const dbUrl = process.env.POSTGRES_PRISMA_URL || process.env.DATABASE_URL || 'Not set';
-    const maskedUrl = dbUrl.replace(/\/\/.*?@/, '//****:****@');
-    console.log('Using database URL:', maskedUrl);
+    // Do a simple database query to verify connection
+    const query = 'SELECT 1 as test';
+    const result = await pgClient.query(query);
     
-    // Simple query to test the connection
-    const startTime = Date.now();
-    const userCount = await prisma.user.count();
-    const endTime = Date.now();
+    // If we made it here, the connection is working
+    const userCount = await pgClient.user.count();
     
-    console.log(`Database query successful. Query took ${endTime - startTime}ms`);
-    console.log(`User count: ${userCount}`);
-    
-    // Set headers to make this endpoint publicly accessible
-    const response = NextResponse.json({
+    return NextResponse.json({
       status: 'success',
-      message: 'Successfully connected to Supabase database',
+      message: 'Database connection is working',
       userCount,
-      queryTimeMs: endTime - startTime,
-      connectionInfo: {
-        provider: 'supabase',
-        environment: process.env.NODE_ENV,
-        timestamp: new Date().toISOString()
-      }
+      testResult: result.rows[0]
     });
-    
-    // Add headers to disable authentication
-    response.headers.set('Cache-Control', 'no-store');
-    response.headers.set('Vercel-CDN-Cache-Control', 'no-store');
-    response.headers.set('X-Vercel-Protection-Bypass', 'true');
-    
-    return response;
   } catch (error) {
-    console.error('Database test error:', error);
-    
-    // Return detailed error for debugging
-    const errorResponse = NextResponse.json({
-      status: 'error',
-      message: 'Failed to connect to database',
-      error: error instanceof Error ? error.message : 'Unknown error',
-      timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV
-    }, { status: 500 });
-    
-    // Add headers to disable authentication
-    errorResponse.headers.set('Cache-Control', 'no-store');
-    errorResponse.headers.set('Vercel-CDN-Cache-Control', 'no-store');
-    errorResponse.headers.set('X-Vercel-Protection-Bypass', 'true');
-    
-    return errorResponse;
+    console.error('Database connection error:', error);
+    return NextResponse.json(
+      { error: 'Failed to connect to database' },
+      { status: 500 }
+    );
   }
 } 

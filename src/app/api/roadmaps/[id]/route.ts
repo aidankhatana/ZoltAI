@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/db/prisma';
+import pgClient from '@/lib/db/pg-client';
 import jwt from 'jsonwebtoken';
 
 if (!process.env.JWT_SECRET) {
@@ -30,30 +30,7 @@ export async function GET(
 ) {
   try {
     const id = params.id;
-    const roadmap = await prisma.roadmap.findUnique({
-      where: { id },
-      include: {
-        steps: {
-          include: {
-            resources: true,
-            quiz: {
-              include: {
-                questions: true
-              }
-            }
-          },
-          orderBy: {
-            order: 'asc'
-          }
-        },
-        user: {
-          select: {
-            id: true,
-            name: true
-          }
-        }
-      }
-    });
+    const roadmap = await pgClient.roadmap.findUnique(id);
 
     if (!roadmap) {
       return NextResponse.json(
@@ -100,10 +77,7 @@ export async function DELETE(
     }
 
     // Find the roadmap
-    const roadmap = await prisma.roadmap.findUnique({
-      where: { id },
-      select: { userId: true }
-    });
+    const roadmap = await pgClient.roadmap.findUnique(id);
 
     if (!roadmap) {
       return NextResponse.json(
@@ -121,9 +95,7 @@ export async function DELETE(
     }
 
     // Delete the roadmap
-    await prisma.roadmap.delete({
-      where: { id }
-    });
+    await pgClient.roadmap.delete(id);
 
     return NextResponse.json({
       message: 'Roadmap deleted successfully'
@@ -154,10 +126,7 @@ export async function PATCH(
     }
 
     // Find the roadmap
-    const roadmap = await prisma.roadmap.findUnique({
-      where: { id },
-      select: { userId: true }
-    });
+    const roadmap = await pgClient.roadmap.findUnique(id);
 
     if (!roadmap) {
       return NextResponse.json(
@@ -175,14 +144,13 @@ export async function PATCH(
     }
 
     // Update the roadmap
-    const updatedRoadmap = await prisma.roadmap.update({
-      where: { id },
-      data: {
-        isPublic: isPublic !== undefined ? isPublic : undefined,
-        title: title || undefined,
-        description: description || undefined
-      }
-    });
+    const updateData: any = {};
+    if (isPublic !== undefined) updateData.isPublic = isPublic;
+    if (title) updateData.title = title;
+    if (description) updateData.description = description;
+
+    // Update the roadmap
+    const updatedRoadmap = await pgClient.roadmap.update(id, updateData);
 
     return NextResponse.json({
       message: 'Roadmap updated successfully',

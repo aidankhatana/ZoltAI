@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateRoadmap } from '@/lib/gemini';
-import prisma from '@/lib/db/prisma';
+import pgClient from '@/lib/db/pg-client';
 import jwt from 'jsonwebtoken';
 import { verifyAuth } from '@/lib/auth';
+import { v4 as uuidv4 } from 'uuid';
 
 if (!process.env.JWT_SECRET) {
   throw new Error('JWT_SECRET environment variable is not set');
@@ -53,40 +54,28 @@ export async function POST(request: NextRequest) {
       additionalInfo
     });
     
-    // Create the roadmap in the database
-    const roadmap = await prisma.roadmap.create({
-      data: {
-        topic,
-        title: roadmapData.title,
-        description: roadmapData.description,
-        difficulty: skillLevel || 'Beginner',
-        estimatedTime: roadmapData.estimatedTime,
-        isPublic,
-        userId,
-        steps: {
-          create: roadmapData.steps.map(step => ({
-            title: step.title,
-            description: step.description,
-            order: step.order,
-            estimatedTime: step.estimatedTime,
-            content: step.content,
-            resources: {
-              create: step.resources.map(resource => ({
-                title: resource.title || "Resource",
-                url: resource.url,
-                type: resource.type || "article"
-              }))
-            }
-          }))
-        }
-      },
-      include: {
-        steps: {
-          orderBy: {
-            order: 'asc'
-          }
-        }
-      }
+    // Create roadmap with PostgreSQL client
+    const roadmap = await pgClient.roadmap.create({
+      id: uuidv4(),
+      topic,
+      title: roadmapData.title,
+      description: roadmapData.description,
+      difficulty: skillLevel || 'Beginner',
+      estimatedTime: roadmapData.estimatedTime,
+      isPublic,
+      userId,
+      steps: roadmapData.steps.map(step => ({
+        title: step.title,
+        description: step.description,
+        order: step.order,
+        estimatedTime: step.estimatedTime,
+        content: step.content,
+        resources: step.resources.map(resource => ({
+          title: resource.title || "Resource",
+          url: resource.url,
+          type: resource.type || "article"
+        }))
+      }))
     });
     
     return NextResponse.json({ 
@@ -119,26 +108,7 @@ export async function GET(request: NextRequest) {
       whereClause.isPublic = isPublic;
     }
     
-    const roadmaps = await prisma.roadmap.findMany({
-      where: whereClause,
-      include: {
-        steps: {
-          orderBy: {
-            order: 'asc'
-          }
-        },
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        }
-      },
-      orderBy: {
-        createdAt: 'desc'
-      }
-    });
+    const roadmaps = await pgClient.roadmap.findMany(whereClause);
     
     return NextResponse.json({ success: true, roadmaps });
   } catch (error) {
