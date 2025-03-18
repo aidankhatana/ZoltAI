@@ -13,28 +13,31 @@ export default function CTA() {
             whileInView={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
             viewport={{ once: true }}
-            className="w-full md:w-1/2"
+            className="w-full md:w-1/2 text-center md:text-left"
           >
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">
-              Ready to start your learning journey?
+              Ready to Transform Your Learning Journey?
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">
-              Create your personalized learning roadmap today and transform your educational experience with AI-powered guidance tailored specifically to you.
+              Join thousands of learners who are already using ZoltAI to achieve their goals. Create your personalized learning roadmap today and start your journey towards mastery.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
               <Link 
                 href="/register" 
                 className="btn-primary bg-sunset-600 hover:bg-sunset-700 dark:bg-sunset-700 dark:hover:bg-sunset-600 text-center"
               >
-                Sign Up
+                Get Started for Free
               </Link>
               <Link 
                 href="/roadmaps" 
                 className="btn-secondary text-center"
               >
-                Explore Roadmaps
+                Browse Learning Paths
               </Link>
             </div>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
+              No credit card required • 14-day free trial
+            </p>
           </motion.div>
           
           <motion.div 

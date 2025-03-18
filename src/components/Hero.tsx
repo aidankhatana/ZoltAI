@@ -21,39 +21,40 @@ const Hero = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
+            className="text-center lg:text-left"
           >
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
-              Discover <span className="text-amber-200">Learning</span> Roadmaps
+              Unlock Your Learning Journey with <span className="text-amber-200">AI-Powered</span> Roadmaps
             </h1>
             <p className="text-xl text-white mb-8">
-              Explore our most popular AI-generated learning paths or create your own
+              Explore curated learning paths or create your own with ZoltAI's AI-driven tools
             </p>
             
-            <form onSubmit={handleSubmit} className="mb-8">
-              <div className="flex flex-col md:flex-row gap-4">
-                <input
-                  type="text"
-                  placeholder="Search for roadmaps..."
-                  className="flex-grow p-4 rounded-lg border border-amber-300 bg-white/90 focus:ring-2 focus:ring-amber-400 focus:border-amber-400 text-base"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <button type="submit" className="bg-amber-600 hover:bg-amber-700 text-white font-medium py-4 px-8 rounded-lg transition-colors">
-                  Search
-                </button>
-              </div>
-            </form>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8">
+              <Link 
+                href="/roadmaps" 
+                className="bg-white hover:bg-amber-50 text-orange-600 font-medium py-4 px-8 rounded-lg transition-colors"
+              >
+                Explore Roadmaps
+              </Link>
+              <Link 
+                href="/register" 
+                className="bg-amber-600 hover:bg-amber-700 text-white font-medium py-4 px-8 rounded-lg transition-colors"
+              >
+                Sign Up to Get Started
+              </Link>
+            </div>
             
-            <div className="flex flex-wrap gap-2 text-sm text-white/80">
+            <div className="flex flex-wrap gap-2 text-sm text-white/80 justify-center lg:justify-start">
               <span>Popular topics:</span>
               {['Programming', 'JavaScript', 'Design', 'Business', 'Music', 'Languages'].map((topic) => (
-                <button 
+                <Link 
                   key={topic}
-                  onClick={() => setSearchQuery(topic)}
+                  href={`/roadmaps?category=${topic.toLowerCase()}`}
                   className="px-3 py-1 bg-white/20 hover:bg-white/30 rounded-full transition duration-200"
                 >
                   {topic}
-                </button>
+                </Link>
               ))}
             </div>
           </motion.div>
@@ -62,7 +63,7 @@ const Hero = () => {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="relative hidden md:block"
+            className="relative"
           >
             <div className="bg-white/90 dark:bg-slate-900/90 rounded-xl shadow-xl p-6 md:p-8 backdrop-blur-sm">
               <div className="flex items-center mb-6">
@@ -70,36 +71,54 @@ const Hero = () => {
                 <div className="w-3 h-3 rounded-full bg-yellow-500 mr-2"></div>
                 <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
                 <div className="flex-grow text-center text-sm text-gray-500 dark:text-gray-400">
-                  Example Learning Roadmap
+                  Python Learning Roadmap
                 </div>
               </div>
               
               <div className="space-y-4">
                 <div className="bg-amber-50 dark:bg-amber-900/40 p-4 rounded-lg border-l-4 border-amber-500">
-                  <h3 className="font-semibold text-amber-700 dark:text-amber-300 mb-2">1. JavaScript Fundamentals (2 weeks)</h3>
+                  <h3 className="font-semibold text-amber-700 dark:text-amber-300 mb-2">1. Python Fundamentals (2 weeks)</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-300">
                     Variables, data types, operators, control flow, and functions
                   </p>
+                  <div className="mt-2 flex items-center text-xs text-gray-500">
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    14 days • 2-3 hours/day
+                  </div>
                 </div>
                 
                 <div className="bg-amber-50 dark:bg-amber-900/40 p-4 rounded-lg border-l-4 border-amber-500">
-                  <h3 className="font-semibold text-amber-700 dark:text-amber-300 mb-2">2. DOM Manipulation (1 week)</h3>
+                  <h3 className="font-semibold text-amber-700 dark:text-amber-300 mb-2">2. Data Structures (1 week)</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-300">
-                    Selecting elements, modifying content, event handling
+                    Lists, dictionaries, sets, tuples, and working with collections
                   </p>
+                  <div className="mt-2 flex items-center text-xs text-gray-500">
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    7 days • 2-3 hours/day
+                  </div>
                 </div>
                 
                 <div className="bg-amber-50 dark:bg-amber-900/40 p-4 rounded-lg border-l-4 border-amber-500">
-                  <h3 className="font-semibold text-amber-700 dark:text-amber-300 mb-2">3. Async JavaScript (1 week)</h3>
+                  <h3 className="font-semibold text-amber-700 dark:text-amber-300 mb-2">3. File Handling & APIs (1 week)</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-300">
-                    Promises, async/await, and fetching data from APIs
+                    Reading/writing files, working with JSON, and API requests
                   </p>
+                  <div className="mt-2 flex items-center text-xs text-gray-500">
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    7 days • 2-3 hours/day
+                  </div>
                 </div>
               </div>
               
               <div className="mt-6 text-center">
-                <Link href="/roadmap-generator" className="inline-block bg-amber-600 hover:bg-amber-700 text-white font-medium py-3 px-6 rounded-lg transition-colors">
-                  Create Your Roadmap
+                <Link href="/roadmaps/python" className="inline-block bg-amber-600 hover:bg-amber-700 text-white font-medium py-3 px-6 rounded-lg transition-colors">
+                  View Full Roadmap
                 </Link>
               </div>
             </div>
