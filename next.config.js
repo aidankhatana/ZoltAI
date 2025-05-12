@@ -11,7 +11,7 @@ const nextConfig = {
   },
   // Optimize production builds
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
+    // removeConsole: process.env.NODE_ENV === 'production', // Keep console logs for debugging
   },
   // Configure webpack to increase memory limit
   webpack: (config) => {
