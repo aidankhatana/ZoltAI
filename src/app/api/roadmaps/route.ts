@@ -35,6 +35,7 @@ const getUserFromToken = (request: NextRequest) => {
 };
 
 export async function POST(request: NextRequest) {
+  console.log('!!! POST /api/roadmaps HANDLER ENTERED !!!');
   console.log('=== Starting Roadmap Creation ===');
   console.log('Request headers:', Object.fromEntries(request.headers.entries()));
   

@@ -73,6 +73,13 @@ export async function generateRoadmap({
   skillLevel,
   additionalInfo
 }: RoadmapGenerationParams): Promise<RoadmapStructure> {
+  console.log('Checking for GEMINI_API_KEY...');
+  if (!API_KEY) {
+    console.error('FATAL: Missing GEMINI_API_KEY environment variable in generateRoadmap');
+    throw new Error('Missing GEMINI_API_KEY environment variable');
+  }
+  console.log('GEMINI_API_KEY found.');
+  
   try {
     console.log(`Generating roadmap for: ${topic} at ${skillLevel} level`);
     

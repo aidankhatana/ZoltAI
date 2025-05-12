@@ -56,6 +56,13 @@ export const userOperations = {
 // Roadmap operations
 export const roadmapOperations = {
   create: async (data: any) => {
+    console.log('Checking for DIRECT_DATABASE_URL...');
+    if (!process.env.DIRECT_DATABASE_URL) {
+      console.error('FATAL: Missing DIRECT_DATABASE_URL environment variable in roadmapOperations.create');
+      throw new Error('Database connection string is not configured');
+    }
+    console.log('DIRECT_DATABASE_URL found.');
+    
     const client = await pool.connect();
   
     try {
