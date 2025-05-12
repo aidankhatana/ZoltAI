@@ -11,100 +11,154 @@ if (!process.env.JWT_SECRET) {
 
 // Helper to extract user from token
 const getUserFromToken = (request: NextRequest) => {
-  const token = request.headers.get('authorization')?.split(' ')[1];
-  
-  if (!token) {
-    return null;
-  }
-
   try {
-    return jwt.verify(token, process.env.JWT_SECRET as string) as {
+    const token = request.headers.get('authorization')?.split(' ')[1];
+    console.log('Token received:', token ? 'Present' : 'Missing');
+    
+    if (!token) {
+      return null;
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
       userId: string;
       email: string;
     };
-  } catch (error) {
+    console.log('Token decoded successfully:', { userId: decoded.userId });
+    return decoded;
+  } catch (error: any) {
+    console.error('Token verification error:', {
+      name: error?.name,
+      message: error?.message
+    });
     return null;
   }
 };
 
 export async function POST(request: NextRequest) {
+  console.log('=== Starting Roadmap Creation ===');
+  console.log('Request headers:', Object.fromEntries(request.headers.entries()));
+  
   try {
-    console.log('Starting roadmap creation...');
-    
+    console.log('Step 1: Verifying authentication...');
     const { userId, token } = await verifyAuth(request);
-    console.log('Auth verified, userId:', userId);
+    console.log('Auth verification result:', { userId, hasToken: !!token });
     
     if (!userId) {
+      console.log('Authentication failed: No userId');
       return NextResponse.json(
         { success: false, error: 'Authentication required' },
         { status: 401 }
       );
     }
     
-    const body = await request.json();
-    console.log('Request body:', JSON.stringify(body, null, 2));
+    console.log('Step 2: Parsing request body...');
+    let body;
+    try {
+      body = await request.json();
+      console.log('Request body parsed successfully:', JSON.stringify(body, null, 2));
+    } catch (parseError: any) {
+      console.error('Failed to parse request body:', {
+        error: parseError?.message,
+        body: await request.text()
+      });
+      throw parseError;
+    }
     
     const { topic, skillLevel, additionalInfo, isPublic = false } = body;
     
     if (!topic) {
+      console.log('Validation failed: Topic is missing');
       return NextResponse.json(
         { success: false, error: 'Topic is required' },
         { status: 400 }
       );
     }
 
-    console.log('Generating roadmap with Gemini...');
-    // Generate roadmap content using Gemini API
-    const roadmapData = await generateRoadmap({
-      topic,
-      skillLevel: skillLevel || 'Beginner',
-      additionalInfo
-    });
-    console.log('Roadmap generated successfully');
+    console.log('Step 3: Generating roadmap with Gemini...');
+    let roadmapData;
+    try {
+      roadmapData = await generateRoadmap({
+        topic,
+        skillLevel: skillLevel || 'Beginner',
+        additionalInfo
+      });
+      console.log('Roadmap generated successfully:', {
+        title: roadmapData.title,
+        stepsCount: roadmapData.steps.length
+      });
+    } catch (geminiError: any) {
+      console.error('Gemini API error:', {
+        name: geminiError?.name,
+        message: geminiError?.message,
+        stack: geminiError?.stack
+      });
+      throw geminiError;
+    }
     
-    console.log('Creating roadmap in database...');
-    // Create roadmap with PostgreSQL client
-    const roadmap = await pgClient.roadmap.create({
-      id: uuidv4(),
-      topic,
-      title: roadmapData.title,
-      description: roadmapData.description,
-      difficulty: skillLevel || 'Beginner',
-      estimatedTime: roadmapData.estimatedTime,
-      isPublic,
-      userId,
-      steps: roadmapData.steps.map(step => ({
-        title: step.title,
-        description: step.description,
-        order: step.order,
-        estimatedTime: step.estimatedTime,
-        content: step.content,
-        resources: step.resources.map(resource => ({
-          title: resource.title || "Resource",
-          url: resource.url,
-          type: resource.type || "article"
+    console.log('Step 4: Creating roadmap in database...');
+    let roadmap;
+    try {
+      roadmap = await pgClient.roadmap.create({
+        id: uuidv4(),
+        topic,
+        title: roadmapData.title,
+        description: roadmapData.description,
+        difficulty: skillLevel || 'Beginner',
+        estimatedTime: roadmapData.estimatedTime,
+        isPublic,
+        userId,
+        steps: roadmapData.steps.map(step => ({
+          title: step.title,
+          description: step.description,
+          order: step.order,
+          estimatedTime: step.estimatedTime,
+          content: step.content,
+          resources: step.resources.map(resource => ({
+            title: resource.title || "Resource",
+            url: resource.url,
+            type: resource.type || "article"
+          }))
         }))
-      }))
-    });
-    console.log('Roadmap created successfully in database');
+      });
+      console.log('Roadmap created successfully in database:', {
+        id: roadmap.id,
+        title: roadmap.title
+      });
+    } catch (dbError: any) {
+      console.error('Database error:', {
+        name: dbError?.name,
+        message: dbError?.message,
+        stack: dbError?.stack,
+        code: dbError?.code
+      });
+      throw dbError;
+    }
     
+    console.log('=== Roadmap Creation Completed Successfully ===');
     return NextResponse.json({ 
       success: true, 
       roadmap,
       message: 'Roadmap created successfully' 
     });
   } catch (error: any) {
-    console.error('Detailed error in roadmap creation:', {
+    console.error('=== Roadmap Creation Failed ===', {
       name: error?.name,
       message: error?.message,
       stack: error?.stack,
-      cause: error?.cause
+      cause: error?.cause,
+      code: error?.code
     });
+    
+    // Return more detailed error information
     return NextResponse.json(
       { 
         success: false, 
         error: 'Failed to create roadmap',
-        details: error?.message 
+        details: {
+          message: error?.message,
+          type: error?.name,
+          code: error?.code
+        }
       },
       { status: 500 }
     );
