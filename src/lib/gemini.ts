@@ -12,7 +12,7 @@ const genAI = new GoogleGenerativeAI(API_KEY);
 
 // Configure model with safety settings
 const model = genAI.getGenerativeModel({ 
-  model: 'gemini-1.5-pro',
+  model: 'gemini-2.0-flash-lite',
   safetySettings: [
     {
       category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
@@ -117,6 +117,8 @@ export async function generateRoadmap({
     Make sure all URLs are valid and point to real, existing resources.
     Ensure estimated times are realistic.
     `;
+
+    console.log(`Using GEMINI_API_KEY starting with: ${API_KEY?.substring(0, 5)}...`);
 
     try {
       // Attempt to generate content with Gemini
