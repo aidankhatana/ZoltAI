@@ -29,7 +29,10 @@ const getUserFromToken = (request: NextRequest) => {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('Starting roadmap creation...');
+    
     const { userId, token } = await verifyAuth(request);
+    console.log('Auth verified, userId:', userId);
     
     if (!userId) {
       return NextResponse.json(
@@ -38,7 +41,10 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const { topic, skillLevel, additionalInfo, isPublic = false } = await request.json();
+    const body = await request.json();
+    console.log('Request body:', JSON.stringify(body, null, 2));
+    
+    const { topic, skillLevel, additionalInfo, isPublic = false } = body;
     
     if (!topic) {
       return NextResponse.json(
@@ -47,13 +53,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.log('Generating roadmap with Gemini...');
     // Generate roadmap content using Gemini API
     const roadmapData = await generateRoadmap({
       topic,
       skillLevel: skillLevel || 'Beginner',
       additionalInfo
     });
+    console.log('Roadmap generated successfully');
     
+    console.log('Creating roadmap in database...');
     // Create roadmap with PostgreSQL client
     const roadmap = await pgClient.roadmap.create({
       id: uuidv4(),
@@ -77,16 +86,26 @@ export async function POST(request: NextRequest) {
         }))
       }))
     });
+    console.log('Roadmap created successfully in database');
     
     return NextResponse.json({ 
       success: true, 
       roadmap,
       message: 'Roadmap created successfully' 
     });
-  } catch (error) {
-    console.error('Error creating roadmap:', error);
+  } catch (error: any) {
+    console.error('Detailed error in roadmap creation:', {
+      name: error?.name,
+      message: error?.message,
+      stack: error?.stack,
+      cause: error?.cause
+    });
     return NextResponse.json(
-      { success: false, error: 'Failed to create roadmap' },
+      { 
+        success: false, 
+        error: 'Failed to create roadmap',
+        details: error?.message 
+      },
       { status: 500 }
     );
   }
